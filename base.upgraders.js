@@ -9,9 +9,10 @@ module.exports.updateBase = function(base, actions, creepRequests, structureRequ
     var controller = Game.rooms[base.name].controller;
     var coreSpawn = Game.spawns[baseMemory.spawns[0]];
     var level = controller.level;
-    var creeps = baseMemory.creeps;    
-    var upgraders = creeps['upgrader'];
-    var maintainers = creeps['maintainer'];
+    var roles = baseMemory.roles;    
+    var upgraders = roles['upgrader'];
+    var upgraderWorkParts = upgraders.parts.work;
+    var maintainers = roles['maintainer'];
     
     //Only upgrade once we have built all structures for that level
     var upgradeNeeded = true;
@@ -31,32 +32,25 @@ module.exports.updateBase = function(base, actions, creepRequests, structureRequ
 
     //Do we need a maintainer?
     if (controller.ticksToDowngrade < 2500) {
-        if (maintainers.length === 0) {
+        if (maintainers.creeps.length === 0) {
             var memory = { role: 'maintainer', target: controller.id };
             requestUtils.add(creepRequests, 1.0, memory);
         }
     }
     else {
         //Destroy existing maintainers
-        for (var i = 0; i < maintainers.length; i++) {
-            var creep = Game.creeps[maintainers[i]];
+        for (var i = 0; i < maintainers.creeps.length; i++) {
+            var creep = Game.creeps[maintainers.creeps[i]];
             actions.recycle(creep, coreSpawn, true);
         }
     }
     
     //Do we need an upgrader?
-    if (upgraders.length === 0 || (upgradeNeeded && upgraders.length < 5)) {
+    if (upgraderWorkParts === 0 || (upgradeNeeded && upgraderWorkParts < 6)) {
         var memory = { role: 'upgrader', target: controller.id };
-        if (upgraders.length === 0)
+        if (upgraders.creeps.length === 0)
             requestUtils.add(creepRequests, 0.80, memory);
         else
             requestUtils.add(creepRequests, 0.60, memory);
     }
-    /*else {
-        //Destroy existing upgraders
-        for (var i = 0; i < upgraders.length; i++) {
-            var creep = Game.creeps[upgraders[i]];
-            actions.recycle(creep, coreSpawn, true);
-        }
-    }*/
 }

@@ -10,11 +10,12 @@ module.exports.updateGlobal = function(actions) {
 module.exports.updateBase = function(base, actions, creepRequests, structureRequests, defenseRequests) {
     var baseMemory = base.memory;
     var level = Game.rooms[base.name].controller.level;
-    var creeps = baseMemory.creeps;
-    var collectors = creeps['collector'];
-    var harvesterCount = creeps['harvester'].length;
-    var rechargerCount = creeps['recharger'].length;
-    var upgraderCount = creeps['upgrader'].length;
+    var roles = baseMemory.roles;
+    var collectors = roles['collector'];
+    var collectorCarryParts = collectors.parts.carry;
+    var harvesterCount = roles['harvester'].creeps.length;
+    var rechargerCount = roles['recharger'].creeps.length;
+    var upgraderCount = roles['upgrader'].creeps.length;
     var towerCount = baseMemory.structures[STRUCTURE_TOWER].length;
     var containers = [];
     
@@ -29,20 +30,20 @@ module.exports.updateBase = function(base, actions, creepRequests, structureRequ
         }
     }
     totalDistance *= 2; //There and back.
-    var maxCollectorCount = Math.ceil(totalDistance / 30); //25?
+    var maxCollectorCount = Math.ceil(totalDistance / 15);
 
-    if (collectors.length < maxCollectorCount) {
+    if (collectorCarryParts < maxCollectorCount) {
         var priority;
         var memory = { role: 'collector' };
-        if (collectors.length < harvesterCount)
+        if (collectorCarryParts < harvesterCount)
             priority = 0.98;
         else
             priority = 0.78;
         requestUtils.add(creepRequests, priority, memory);
     }
 
-    for (var i = 0; i < collectors.length && containers.length !== 0; i++) {
-        var name = collectors[i];
+    for (var i = 0; i < collectors.creeps.length && containers.length !== 0; i++) {
+        var name = collectors.creeps[i];
         var creepMemory = Memory.creeps[name];
         if (!creepMemory.target) {
             var sourceId = containers.shift();

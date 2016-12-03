@@ -3,7 +3,7 @@ var listUtils = require('util.list');
 var mapUtils = require('util.map');
 var partUtils = require('util.parts');
 
-const CORE_PARTS = [TOUGH,TOUGH,ATTACK,MOVE,MOVE,MOVE];
+const CORE_PARTS = [TOUGH,RANGED_ATTACK,MOVE,MOVE];
 const REPEAT_PARTS = [];
 
 module.exports.getBodyInfo = function(energy) {
@@ -28,6 +28,6 @@ module.exports.update = function(creep, memory, actions) {
     if (roomMemory) {
         var hostile = mapUtils.findClosestCreepByPath(creep.pos, roomMemory.hostiles);
         if (hostile)
-            actions.attack(creep, hostile, true);
+            actions.rangedAttack(creep, hostile, true);
     }
 }

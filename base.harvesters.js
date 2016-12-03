@@ -7,17 +7,16 @@ module.exports.updateGlobal = function(actions) {
 
 module.exports.updateBase = function(base, actions, creepRequests, structureRequests, defenseRequests) {
     var baseMemory = base.memory;
-    var creeps = baseMemory.creeps;
-    var simpleHarvesterCount = creeps['harvester_simple'].length;
-    var harvesterCount = creeps['harvester'].length;
-    var collectorCount = creeps['collector'].length;
-    var scavengerCount = creeps['scavenger'].length;
+    var roles = baseMemory.roles;
+    var simpleHarvesterCount = roles['harvester_simple'].creeps.length;
+    var harvesterCount = roles['harvester'].creeps.length;
+    var collectorCount = roles['collector'].creeps.length;
+    var scavengerCount = roles['scavenger'].creeps.length;
 
     for (var i = 0; i < baseMemory.sources.length; i++) {
         var sourceMemory = Memory.sources[baseMemory.sources[i]];
         var maxHarvesters = sourceMemory.maxHarvesters;
         var maxCollectors = Math.ceil(sourceMemory.distance / 50.0);
-        var sourceHarvesterCount = sourceMemory.harvesters.length;
         var hasReadyContainer = false;
 
         //Update containers
@@ -67,30 +66,32 @@ module.exports.updateBase = function(base, actions, creepRequests, structureRequ
         }
 
         //Adjust max harvesters to a more reasonable value
-        if (/*sourceMemory.room === base.name &&*/ maxHarvesters > 3)
+        if (maxHarvesters > 3)
             maxHarvesters = 3;
-        /*else if (sourceMemory.room !== base.name && maxHarvesters > 1)
-            maxHarvesters = 1;*/
         
-        if (sourceHarvesterCount < maxHarvesters) {
-            var id = baseMemory.sources[i];
-            var roomMemory = Memory.rooms[Memory.sources[id].room];
-            if (roomMemory && roomMemory.threatLevel === 0) {
-                var priority;
-                var memory = {
-                    role: 'harvester',
-                    target: id
-                };
-                if (hasReadyContainer === false && simpleHarvesterCount < 3 && collectorCount < 3) {
-                    priority = 0.99;
-                    memory.role = 'harvester_simple';
+        if (sourceMemory.harvesters.length < maxHarvesters) {
+            var sourceWorkParts = 0;
+            for (var j = 0; j < sourceMemory.harvesters.length; j++)
+                sourceWorkParts += Memory.creeps[sourceMemory.harvesters[j]].parts.work;
+            if (sourceWorkParts < 6) {
+                var id = baseMemory.sources[i];
+                var roomMemory = Memory.rooms[Memory.sources[id].room];
+                if (roomMemory && roomMemory.threatLevel === 0) {
+                    var priority;
+                    var memory = {
+                        role: 'harvester',
+                        target: id
+                    };
+                    if ((harvesterCount + simpleHarvesterCount) < 3 && collectorCount < 3) {
+                        priority = 0.99;
+                        memory.role = 'harvester_simple';
+                    }
+                    else if (sourceMemory.harvesters.length === 0)
+                        priority = 0.96;
+                    else
+                        priority = 0.80;
+                    requestUtils.add(creepRequests, priority, memory);
                 }
-                else if (sourceHarvesterCount === 0)
-                    priority = 0.96;
-                else
-                    priority = 0.80;
-                requestUtils.add(creepRequests, priority, memory);
-                //break;
             }
         }
     }

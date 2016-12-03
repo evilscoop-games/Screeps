@@ -10,6 +10,9 @@ module.exports.updateBase = function(base, actions, creepRequests, structureRequ
     var totalThreatLevel = 0;
     var totalDefenseLevel = 0;
     var threatRooms = [];
+    var melee = Memory.military.roles.melee;
+    var ranged = Memory.military.roles.ranged;
+    var military = melee.creeps.concat(ranged.creeps);
 
     for (var i = 0; i < baseMemory.rooms.length; i++) {
         var roomName = baseMemory.rooms[i];
@@ -29,22 +32,28 @@ module.exports.updateBase = function(base, actions, creepRequests, structureRequ
                 var hits = creep.hits;
                 var totalPower = (attack * 800) + (rangedAttack * 1500) + (heal * 2500) + hits;
                 
-                if (attack + rangedAttack + heal > 0) {
+                if (attack + rangedAttack + heal === 0) {
                     if (creep.my)
+                        continue;
+                    else
+                        totalPower = 1;
+                }
+                
+                if (creep.my) {
+                    if (creep.memory.room === roomName)
                         defenseLevel += totalPower;
-                    else {
-                        threatLevel += totalPower;
-                        listUtils.add(hostiles, creep.id);
-                    }                    
+                    totalDefenseLevel += totalPower;
+                }
+                else {
+                    threatLevel += totalPower;
+                    totalThreatLevel += totalPower;
+                    listUtils.add(hostiles, creep.id);
                 }
             }
 
             roomMemory.defenseLevel = defenseLevel;
             roomMemory.threatLevel = threatLevel;
             roomMemory.hostiles = hostiles;
-            totalDefenseLevel += defenseLevel;
-            totalThreatLevel += threatLevel;
-
         }
         else {
             totalDefenseLevel += roomMemory.defenseLevel;
@@ -55,9 +64,8 @@ module.exports.updateBase = function(base, actions, creepRequests, structureRequ
             listUtils.add(threatRooms, roomName);
 
         if (roomMemory.threatLevel === 0) {
-            var melee = Memory.military.creeps.melee;
-            for (var j = 0; j < melee.length; j++) {
-                var creepMemory = Memory.creeps[melee[j]];
+            for (var j = 0; j < military.length; j++) {
+                var creepMemory = Memory.creeps[military[j]];
                 if (creepMemory.room === roomName)
                     creepMemory.room = null;
             }
@@ -67,12 +75,16 @@ module.exports.updateBase = function(base, actions, creepRequests, structureRequ
     baseMemory.threatLevel = totalThreatLevel;
     baseMemory.defenseLevel = totalDefenseLevel;
 
+    var memory = {
+        military: true
+    };
+    if (ranged.parts.ranged_attack < melee.parts.attack)
+        memory.role = 'ranged';
+    else
+        memory.role = 'melee';
+
     if (totalThreatLevel > totalDefenseLevel) {
         console.log('Threat alert! (' + baseMemory.defenseLevel + ' vs ' + baseMemory.threatLevel + ')');
-        var memory = {
-            military: true,
-            role: 'melee'
-        };
         requestUtils.add(creepRequests, 0.9, memory);
     }
     else if (totalDefenseLevel < 2500)
@@ -80,9 +92,8 @@ module.exports.updateBase = function(base, actions, creepRequests, structureRequ
 
     //Redirect current units
     if (threatRooms.length > 0) {
-        var melee = Memory.military.creeps.melee;
-        for (var j = 0; j < melee.length; j++) {
-            var creepMemory = Memory.creeps[melee[j]];
+        for (var j = 0; j < military.length; j++) {
+            var creepMemory = Memory.creeps[military[j]];
             if (!creepMemory.room)
                 creepMemory.room = threatRooms[0];
         }

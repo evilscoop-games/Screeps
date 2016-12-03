@@ -7,12 +7,15 @@ module.exports.updateGlobal = function(actions) {
 module.exports.updateBase = function(base, actions, creepRequests, structureRequests, defenseRequests) {
     var baseMemory = base.memory;
     var level = Game.rooms[base.name].controller.level;
-    var creeps = baseMemory.creeps;
-    var defenseBuilders = creeps['builder_defense'];
-    var roadBuilders = creeps['builder_road'];
-    var structureBuilders = creeps['builder_structure'];
-    var repairers = creeps['repairer'];
-    var healerCount = creeps['healer'].length;
+    var roles = baseMemory.roles;
+    var defenseBuilders = roles['builder_defense'];
+    var defenseBuilderWorkParts = defenseBuilders.parts.work;
+    var roadBuilders = roles['builder_road'];
+    var roadBuilderWorkParts = roadBuilders.parts.work;
+    var structureBuilders = roles['builder_structure'];
+    var structureBuilderWorkParts = structureBuilders.parts.work;
+    var repairers = roles['repairer'];
+    var healerCount = roles['healer'].length;
     var towerCount = baseMemory.structures[STRUCTURE_TOWER].length;
     var structureTarget = null, roadTarget = null, defenseTarget = null, repairTarget = null, fallbackTarget = null;
     var isRepairCritical = false;
@@ -111,14 +114,14 @@ module.exports.updateBase = function(base, actions, creepRequests, structureRequ
         defenseTarget = fallbackTarget;
 
     //Assign targets to builders
-    for (var i = 0; i < structureBuilders.length; i++)
-        Memory.creeps[structureBuilders[i]].target = structureTarget;
-    for (var i = 0; i < roadBuilders.length; i++)
-        Memory.creeps[roadBuilders[i]].target = roadTarget;
-    for (var i = 0; i < defenseBuilders.length; i++)
-        Memory.creeps[defenseBuilders[i]].target = defenseTarget;
-    for (var i = 0; i < repairers.length; i++)
-        Memory.creeps[repairers[i]].target = repairTarget;
+    for (var i = 0; i < structureBuilders.creeps.length; i++)
+        Memory.creeps[structureBuilders.creeps[i]].target = structureTarget;
+    for (var i = 0; i < roadBuilders.creeps.length; i++)
+        Memory.creeps[roadBuilders.creeps[i]].target = roadTarget;
+    for (var i = 0; i < defenseBuilders.creeps.length; i++)
+        Memory.creeps[defenseBuilders.creeps[i]].target = defenseTarget;
+    for (var i = 0; i < repairers.creeps.length; i++)
+        Memory.creeps[repairers.creeps[i]].target = repairTarget;
 
     //Request more creeps        
     if ((repairers.length === 0 && towerCount === 0) || repairers.length < level - 1) {
@@ -136,36 +139,36 @@ module.exports.updateBase = function(base, actions, creepRequests, structureRequ
         requestUtils.add(creepRequests, 0.88, memory);
     }*/
 
-    if ((roadBuilders.length < level && baseMemory.construction.roads.length > 0) || roadBuilders.length < 1) {
+    if (roadBuilderWorkParts === 0 || (roadBuilderWorkParts < level && baseMemory.construction.roads.length > 0)) {
         var priority;
         var memory = { role: 'builder_road' };
-        if (roadBuilders.length === 0)
+        if (roadBuilderWorkParts === 0)
             priority = 0.86;
-        else if (roadBuilders.length < 2)
+        else if (roadBuilderWorkParts < 2)
             priority = 0.76;
         else
             priority = 0.68;
         requestUtils.add(creepRequests, priority, memory);
     }
 
-    if (structureBuilders.length < level && baseMemory.construction.structures.length > 0) {
+    if (structureBuilderWorkParts < level && baseMemory.construction.structures.length > 0) {
         var priority;
         var memory = { role: 'builder_structure' };
-        if (structureBuilders.length === 0)
+        if (structureBuilderWorkParts === 0)
             priority = 0.84;
-        else if (structureBuilders.length < 2)
+        else if (structureBuilderWorkParts < 2)
             priority = 0.74;
         else
             priority = 0.66;
         requestUtils.add(creepRequests, priority, memory);
     }
 
-    if ((defenseBuilders.length === 0 || defenseBuilders.length < level - 1) && level >= 2/* && baseMemory.construction.defenses.length > 0*/) {
+    if ((defenseBuilderWorkParts === 0 || defenseBuilderWorkParts < level - 1) && level >= 2/* && baseMemory.construction.defenses.length > 0*/) {
         var priority;
         var memory = { role: 'builder_defense' };
-        if (defenseBuilders.length === 0)
+        if (defenseBuilderWorkParts === 0)
             priority = 0.82;
-        else if (defenseBuilders.length < 2)
+        else if (defenseBuilderWorkParts < 2)
             priority = 0.72;
         else
             priority = 0.64;

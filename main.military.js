@@ -10,19 +10,20 @@ var unitManagers = {
     messenger: require('unit.messenger'), //Temp
     reserver: require('unit.reserver'),
     scout: require('unit.scout'),
-    melee: require('unit.melee')
+    melee: require('unit.melee'),
+    ranged: require('unit.ranged')
 }
 
 module.exports.initMemory = function() {
     var militaryMemory = Memory.military;
     for (var manager in unitManagers)
-        militaryMemory.creeps[manager] = [];
+        militaryMemory.roles[manager] = [];
 }
 
 module.exports.updateGlobal = function(actions) {
     //Check for destroyed creeps
-    for (var creepType in Memory.military.creeps) {
-        var creepNames = Memory.military.creeps[creepType];
+    for (var role in Memory.military.roles) {
+        var creepNames = Memory.military.roles[role];
         for (var i = 0; i < creepNames.length; i++) {
             var name = creepNames[i];
             if (Game.creeps[name] === undefined) {

@@ -19,7 +19,7 @@ module.exports.init = function() {
     Memory.flags = {};
     Memory.rooms = {};
     Memory.military = {
-        creeps: {}
+        roles: {}
     };
     Memory.minerals = {};
     Memory.sources = {};
@@ -41,7 +41,7 @@ module.exports.createBase = function() {
         spawns: [],
         sources: [],
         minerals: [],
-        creeps: {},
+        roles: {},
         structures: {},
         plan: {
             queued: {},

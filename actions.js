@@ -15,7 +15,7 @@ var actions = {
     harvest: continueHarvest,
 
     //Ranged:
-    //rangedAttack: continueRangedAttack,
+    rangedAttack: continueRangedAttack,
     //rangedMassAttack: continueRangedMassAttack,
 
     //Secondaries
@@ -163,6 +163,8 @@ function continueRecycle(creep, action) {
     return doRecycle(creep, target, true);
 }
 function doRecycle(creep, target, allowMove) {
+    if (target.spawning)
+        return false; //Wait for spawning to finish
     creep.transfer(target, RESOURCE_ENERGY); //Transfer whatever we have before we blow up
     var result = target.recycleCreep(creep);
 
@@ -188,6 +190,8 @@ function continueRenew(creep, action) {
     return doRenew(creep, target, true);
 }
 function doRenew(creep, target, allowMove) {
+    if (target.spawning)
+        return false; //Wait for spawning to finish
     var result = target.renewCreep(creep);
 
     if (result === OK)
@@ -501,6 +505,32 @@ function continueAttack(creep, action) {
     return doAttack(creep, target, true);
 }
 function doAttack(creep, target, allowMove) {
+    var result = creep.attack(target);
+
+    if (result === OK)
+        return true; //Success
+    else if (allowMove && result === ERR_NOT_IN_RANGE) {
+        moveTo(creep, target.pos);
+        return false;
+    }
+    else
+        return true; //Failed
+}
+
+module.exports.rangedAttack = function(creep, target, allowMove) {
+    Game.debug.sayAction(creep, 'rangedAttack');
+    if (doRangedAttack(creep, target, allowMove) || !allowMove)
+        return false;
+    setAction(creep, 'rangedAttack', { target: target.id });
+    return true;
+}
+function continueRangedAttack(creep, action) {
+    var target = Game.structures[action.target];
+    if (!target)
+        target = Game.getObjectById(action.target);
+    return doRangedAttack(creep, target, true);
+}
+function doRangedAttack(creep, target, allowMove) {
     var result = creep.attack(target);
 
     if (result === OK)

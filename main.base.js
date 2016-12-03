@@ -146,8 +146,8 @@ module.exports.updateBase = function(base, actions, creepRequests, structureRequ
     }
     
     //Check for destroyed creeps
-    for (var creepType in baseMemory.creeps) {
-        var creepNames = baseMemory.creeps[creepType];
+    for (var role in baseMemory.roles) {
+        var creepNames = baseMemory.roles[role].creeps;
         for (var i = 0; i < creepNames.length; i++) {
             var name = creepNames[i];
             if (Game.creeps[name] === undefined) {
@@ -158,6 +158,7 @@ module.exports.updateBase = function(base, actions, creepRequests, structureRequ
                         for (var key in creepMemory.parts)
                             baseMemory.roles[creepMemory.role].parts[key] -= creepMemory.parts[key];
                     }
+
                     var manager = creepManagers[creepMemory.role];
                     if (manager)
                         creepManagers[creepMemory.role].onDestroy(name, creepMemory);
@@ -260,12 +261,12 @@ module.exports.updateBase = function(base, actions, creepRequests, structureRequ
                         if (!memory.military) {
                             for (var key in parts)
                                 baseMemory.roles[memory.role].parts[key] += parts[key];
-                            var creepNames = baseMemory.creeps[memory.role];
+                            var creepNames = baseMemory.roles[memory.role].creeps;
                             listUtils.add(creepNames, name);
                             manager.onCreate(name, memory);
                         }
                         else {
-                            var creepNames = Memory.military.creeps[memory.role];
+                            var creepNames = Memory.military.roles[memory.role].creeps;
                             listUtils.add(creepNames, name);
                             manager.onCreate(name, memory);
                         }
