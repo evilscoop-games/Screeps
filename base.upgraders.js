@@ -1,0 +1,62 @@
+"use strict";
+var requestUtils = require("util.requests");
+
+module.exports.updateGlobal = function(actions) {
+}
+
+module.exports.updateBase = function(base, actions, creepRequests, structureRequests, defenseRequests) {
+    var baseMemory = base.memory;
+    var controller = Game.rooms[base.name].controller;
+    var coreSpawn = Game.spawns[baseMemory.spawns[0]];
+    var level = controller.level;
+    var creeps = baseMemory.creeps;    
+    var upgraders = creeps['upgrader'];
+    var maintainers = creeps['maintainer'];
+    
+    //Only upgrade once we have built all structures for that level
+    var upgradeNeeded = true;
+    for (var structureType in CONTROLLER_STRUCTURES) {
+        if (structureType != STRUCTURE_CONTAINER &&
+                structureType != STRUCTURE_ROAD &&
+                structureType != STRUCTURE_RAMPART &&
+                structureType != STRUCTURE_WALL) {
+            var currentCount = baseMemory.structures[structureType].length;
+            var maxCount = CONTROLLER_STRUCTURES[structureType][level];
+            if (currentCount < maxCount) {
+                upgradeNeeded = false;
+                break;
+            }
+        }
+    }
+
+    //Do we need a maintainer?
+    if (controller.ticksToDowngrade < 2500) {
+        if (maintainers.length === 0) {
+            var memory = { role: 'maintainer', target: controller.id };
+            requestUtils.add(creepRequests, 1.0, memory);
+        }
+    }
+    else {
+        //Destroy existing maintainers
+        for (var i = 0; i < maintainers.length; i++) {
+            var creep = Game.creeps[maintainers[i]];
+            actions.recycle(creep, coreSpawn, true);
+        }
+    }
+    
+    //Do we need an upgrader?
+    if (upgraders.length === 0 || (upgradeNeeded && upgraders.length < 5)) {
+        var memory = { role: 'upgrader', target: controller.id };
+        if (upgraders.length === 0)
+            requestUtils.add(creepRequests, 0.80, memory);
+        else
+            requestUtils.add(creepRequests, 0.60, memory);
+    }
+    /*else {
+        //Destroy existing upgraders
+        for (var i = 0; i < upgraders.length; i++) {
+            var creep = Game.creeps[upgraders[i]];
+            actions.recycle(creep, coreSpawn, true);
+        }
+    }*/
+}
