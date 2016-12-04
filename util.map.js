@@ -26,7 +26,7 @@ function findClosestCreepByPath(from, creeps, filter) {
     var bestDistance = 9999;
     for (var key in creeps) {
         var creep = Game.creeps[creeps[key]];
-        if (creep && (!filter || filter(creep))) {
+        if (creep && (filter == undefined || filter(creep))) {
             var distance = getPathDistanceTo(from, creep.pos);
             if (distance < bestDistance) {
                 bestCreep = creep;
@@ -40,6 +40,25 @@ function findClosestCreepByPath(from, creeps, filter) {
         return null;
 }
 module.exports.findClosestCreepByPath = findClosestCreepByPath;
+function findClosestHostileByPath(from, hostiles, filter) {
+    var bestHostile = null;
+    var bestDistance = 9999;
+    for (var key in hostiles) {
+        var hostile = Game.getObjectById(hostiles[key]);
+        if (hostile && (filter == undefined || filter(hostile))) {
+            var distance = getPathDistanceTo(from, hostile.pos);
+            if (distance < bestDistance) {
+                bestHostile = hostile;
+                bestDistance = distance;
+            }
+        }
+    }
+    if (bestHostile)
+        return bestHostile;
+    else
+        return null;
+}
+module.exports.findClosestHostileByPath = findClosestHostileByPath;
 function findClosestStructureByPath(from, structures, filter) {
     var bestStructure = null;
     var bestDistance = 9999;
@@ -131,8 +150,9 @@ module.exports.findDropoff = function(from, base, amount) {
     });
     if (structure)
         return structure;
+    return null;
 }
-module.exports.findStorage = function(from, base, amount) {
+module.exports.findStorage = function(from, base, amount, allowSpawn) {
     var structure = findClosestStructureByRange(from, base.pickups, (x) => {
         if (x.store)
             return x.store.energy >= amount;
@@ -141,6 +161,18 @@ module.exports.findStorage = function(from, base, amount) {
     });
     if (structure)
         return structure;
+
+    if (allowSpawn) {
+        var structure = findClosestStructureByRange(from, base.corePickups, (x) => {
+            if (x.store)
+                return x.store.energy >= amount;
+            else
+                return x.energy >= amount;
+        });
+        if (structure)
+            return structure;
+    }
+    return null;
 }
 
 //Serialization
@@ -335,4 +367,23 @@ function isOpen(x, y, openSpots) {
             return true;
     }
     return false;
+}
+
+module.exports.isReserved = function(room) {
+    var controller = room.controller;
+    if (!controller)
+        return false;
+    else if (controller.my)
+        return true;
+    else {
+        var reservation = controller.reservation;
+        if (!reservation ||
+                (reservation.username === "RogueException" || 
+                reservation.username === "Voltana" || 
+                reservation.username === "Shira") ||
+                reservation.ticksToEnd > 500)
+            return true;
+        else
+            return false;
+    }
 }

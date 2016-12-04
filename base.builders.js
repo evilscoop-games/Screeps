@@ -139,12 +139,12 @@ module.exports.updateBase = function(base, actions, creepRequests, structureRequ
         requestUtils.add(creepRequests, 0.88, memory);
     }*/
 
-    if (roadBuilderWorkParts === 0 || (roadBuilderWorkParts < level && baseMemory.construction.roads.length > 0)) {
+    if (roadBuilderWorkParts < level || (roadBuilderWorkParts < level * 2 && baseMemory.construction.roads.length > 0)) {
         var priority;
         var memory = { role: 'builder_road' };
         if (roadBuilderWorkParts === 0)
             priority = 0.86;
-        else if (roadBuilderWorkParts < 2)
+        else if (roadBuilderWorkParts < level)
             priority = 0.76;
         else
             priority = 0.68;
@@ -156,7 +156,7 @@ module.exports.updateBase = function(base, actions, creepRequests, structureRequ
         var memory = { role: 'builder_structure' };
         if (structureBuilderWorkParts === 0)
             priority = 0.84;
-        else if (structureBuilderWorkParts < 2)
+        else if (structureBuilderWorkParts < level)
             priority = 0.74;
         else
             priority = 0.66;
@@ -168,7 +168,7 @@ module.exports.updateBase = function(base, actions, creepRequests, structureRequ
         var memory = { role: 'builder_defense' };
         if (defenseBuilderWorkParts === 0)
             priority = 0.82;
-        else if (defenseBuilderWorkParts < 2)
+        else if (defenseBuilderWorkParts < level)
             priority = 0.72;
         else
             priority = 0.64;

@@ -28,6 +28,7 @@ module.exports.update = function(creep, memory, actions) {
         for (; !target && energy >= 0; energy -= 50)
             target = findTarget(creep, energy);
 
+        //console.log(creep.name + ': give to ' + target);
         if (target) {
             creep.memory.target = target.id;
             if (target.structureType) { //Is Structure?
@@ -41,9 +42,10 @@ module.exports.update = function(creep, memory, actions) {
             }
         }
     }
-    
-    if(baseMemory.construction.requestedCreepPriority < 0.80  && creep.carry.energy === 0) {
-        var storage = mapUtils.findStorage(creep.pos, Game.bases[memory.base], creep.carryCapacity - creep.carry.energy);
+    else {
+        var mayUseSpawn = baseMemory.construction.requestedCreepPriority < 0.80 && baseMemory.structures[STRUCTURE_STORAGE].length === 0;
+        var storage = mapUtils.findStorage(creep.pos, Game.bases[memory.base], creep.carryCapacity - creep.carry.energy, mayUseSpawn);
+        //console.log(creep.name + ': take from ' + storage);
         if (storage) {
             if (actions.withdraw(creep, storage, true))
                 return;
@@ -52,8 +54,28 @@ module.exports.update = function(creep, memory, actions) {
 }
 
 function findTarget(creep, neededEnergy) {
+    var baseMemory = Memory.bases[creep.memory.base];
     if (neededEnergy === 0)
-        neededEnergy = 25;
+        neededEnergy = 25;        
+
+    var targetStructure = creep.pos.findClosestByPath(FIND_MY_STRUCTURES, { filter: (x) => {
+        var type = x.structureType;
+        return (type === STRUCTURE_TOWER) && 
+            x.energy === 0;
+    }});
+    if (targetStructure)
+        return targetStructure;
+
+    if (baseMemory.structures[STRUCTURE_STORAGE].length !== 0) {
+        var targetStructure = creep.pos.findClosestByPath(FIND_MY_STRUCTURES, { filter: (x) => {
+            var type = x.structureType;
+            return (type === STRUCTURE_SPAWN || type === STRUCTURE_EXTENSION) && 
+                (x.energyCapacity - x.energy) >= neededEnergy;
+        }});
+        if (targetStructure)
+            return targetStructure;
+    }
+
     var targetStructure = creep.pos.findClosestByPath(FIND_MY_STRUCTURES, { filter: (x) => {
         var type = x.structureType;
         return (type === STRUCTURE_TOWER) && 

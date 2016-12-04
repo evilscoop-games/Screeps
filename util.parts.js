@@ -34,6 +34,14 @@ module.exports.get = function(initialParts, repeatParts, maxCost) {
     };
 }
 
+module.exports.getPowerLevel = function(creep) {
+    var attack = creep.getActiveBodyparts(ATTACK);
+    var rangedAttack = creep.getActiveBodyparts(RANGED_ATTACK);
+    var heal = creep.getActiveBodyparts(HEAL);
+    var hits = creep.hits;
+    return (attack * 800) + (rangedAttack * 1500) + (heal * 2500) + hits;
+}
+
 function calcBodyCost(body) {
     var cost = 0;
     for (var i = 0; i < body.length; i++)

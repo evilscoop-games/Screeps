@@ -20,7 +20,8 @@ module.exports.update = function(creep, memory, actions) {
     var coreSpawn = Game.spawns[baseMemory.spawns[0]];
                 
     if(creep.carry.energy < creep.carryCapacity) {
-        var storage = mapUtils.findStorage(creep.pos, Game.bases[memory.base], creep.carryCapacity - creep.carry.energy);
+        var mayUseSpawn = baseMemory.construction.requestedCreepPriority < 0.80;
+        var storage = mapUtils.findStorage(creep.pos, Game.bases[memory.base], creep.carryCapacity - creep.carry.energy, mayUseSpawn);
         if (storage) {
             if (actions.withdraw(creep, storage, true))
                 return;

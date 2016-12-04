@@ -1,13 +1,14 @@
 "use strict";
 var listUtils = require("util.list");
 var managers = [
+    require('military.intel'),
+    require('military.reservations'),
     require('military.defense'),
-    require('military.scouts')
+    require('military.scouts'),
+    require('military.squads')
 ]
 var unitManagers = {
-    //claimer: require('unit.claimer'),
-    //healer: require('unit.healer'),
-    messenger: require('unit.messenger'), //Temp
+    healer: require('unit.healer'),
     reserver: require('unit.reserver'),
     scout: require('unit.scout'),
     melee: require('unit.melee'),
@@ -23,12 +24,15 @@ module.exports.initMemory = function() {
 module.exports.updateGlobal = function(actions) {
     //Check for destroyed creeps
     for (var role in Memory.military.roles) {
-        var creepNames = Memory.military.roles[role];
+        var creepNames = Memory.military.roles[role].creeps;
         for (var i = 0; i < creepNames.length; i++) {
             var name = creepNames[i];
             if (Game.creeps[name] === undefined) {
                 var creepMemory = Memory.creeps[name];
                 if (creepMemory) {
+                    for (var key in creepMemory.parts)
+                        Memory.military.roles[creepMemory.role].parts[key] -= creepMemory.parts[key];
+
                     unitManagers[creepMemory.role].onDestroy(name, creepMemory);
                     delete Memory.creeps[name];
                 }

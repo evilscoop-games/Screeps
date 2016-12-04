@@ -154,10 +154,8 @@ module.exports.updateBase = function(base, actions, creepRequests, structureRequ
                 var creepMemory = Memory.creeps[name];
                 var role;
                 if (creepMemory) {
-                    if (creepMemory.parts) {
-                        for (var key in creepMemory.parts)
-                            baseMemory.roles[creepMemory.role].parts[key] -= creepMemory.parts[key];
-                    }
+                    for (var key in creepMemory.parts)
+                        baseMemory.roles[creepMemory.role].parts[key] -= creepMemory.parts[key];
 
                     var manager = creepManagers[creepMemory.role];
                     if (manager)
@@ -266,6 +264,8 @@ module.exports.updateBase = function(base, actions, creepRequests, structureRequ
                             manager.onCreate(name, memory);
                         }
                         else {
+                            for (var key in parts)
+                                Memory.military.roles[memory.role].parts[key] += parts[key];
                             var creepNames = Memory.military.roles[memory.role].creeps;
                             listUtils.add(creepNames, name);
                             manager.onCreate(name, memory);
@@ -331,6 +331,7 @@ module.exports.updateBase = function(base, actions, creepRequests, structureRequ
                 var queuedStructures = baseMemory.plan.queued[structureName];
                 var success = false;
                 if (queuedStructures.length > 0) {
+                    console.log(queuedStructures[0]);
                     var pos = mapUtils.deserializePos(queuedStructures[0]);                
                     var structures = pos.lookFor(LOOK_STRUCTURES);
                     var alreadyExists = false;

@@ -21,10 +21,18 @@ module.exports.updateBase = function(base, actions, creepRequests, structureRequ
             return (structure.energyCapacity - structure.energy) > 0;
     });
     
-    var pickups = baseMemory.structures[STRUCTURE_STORAGE]
-        .concat(baseMemory.structures[STRUCTURE_SPAWN])
-        .concat(baseMemory.structures[STRUCTURE_EXTENSION]);
+    var pickups = baseMemory.structures[STRUCTURE_STORAGE];
     base.pickups = _.filter(pickups, x => {
+        var structure = Game.structures[x];
+        if (structure.store)
+            return structure.store.energy > 0;
+        else
+            return structure.energy > 0;
+    });
+    
+    var corePickups = baseMemory.structures[STRUCTURE_SPAWN]
+        .concat(baseMemory.structures[STRUCTURE_EXTENSION]);
+    base.corePickups = _.filter(corePickups, x => {
         var structure = Game.structures[x];
         if (structure.store)
             return structure.store.energy > 0;

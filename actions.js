@@ -3,12 +3,12 @@ var mapUtils = require('util.map');
 
 var actions = {
     //Full:
-    //rangedHeal: continueRangedHeal,
+    rangedHeal: continueRangedHeal,
     repair: continueRepair,
     build: continueBuild,
 
     //Melee:
-    //heal: continueHeal },
+    heal: continueHeal,
     //attackController: continueAttackController,
     //dismantle: continueDismantle,
     attack: continueAttack,
@@ -78,15 +78,20 @@ function moveTo(creep, pos) {
             pathMemory.stuck > pathMemory.path.length || //Has been stuck for longer than the length of this path
             pathMemory.stuck > 5) { //Has been stuck for 5 steps
         //console.log('New path');
-        pathMemory = setPath(creep, pos, creep.pos.findPathTo(pos));
+        var path;
+        if (creep.pos.roomName === pos.roomName) //Avoid backtracking if target is in this same room
+            path = creep.pos.findPathTo(pos, { maxRooms: 1 });
+        else
+            path = creep.pos.findPathTo(pos);
+        pathMemory = setPath(creep, pos, path);
     }
     else {
         if (creep.pos.isEqualTo(mapUtils.deserializePos(pathMemory.lastPos)))
             pathMemory.stuck++;
         else
             pathMemory.index++;
-        pathMemory.lastPos = mapUtils.serializePos(creep.pos);
     }
+    pathMemory.lastPos = mapUtils.serializePos(creep.pos);
     moveStep(creep, pathMemory);
 }
 function moveByPath(creep, path) {
@@ -98,14 +103,13 @@ function moveByPath(creep, path) {
 function setPath(creep, pos, path) {
     var pathMemory = {
         pos: mapUtils.serializePos(pos),
-        lastPos: mapUtils.serializePos(creep.pos),
+        lastPos: null,
         tick: Game.time,
         index: 0,
         path: mapUtils.serializeRelativePath(path),
         stuck:  0
     }
     creep.memory._path = pathMemory;
-    pathMemory.lastPos = mapUtils.serializePos(creep.pos);
     return pathMemory;
 }
 function moveStep(creep, pathMemory) {
@@ -163,17 +167,24 @@ function continueRecycle(creep, action) {
     return doRecycle(creep, target, true);
 }
 function doRecycle(creep, target, allowMove) {
+    if (!target)
+        return true; //Unknown target
+    if (!creep.pos.isNearTo(target.pos)) {
+        if (allowMove) {
+            moveTo(creep, target.pos);
+            return false;
+        }
+        return true;
+    }
     if (target.spawning)
         return false; //Wait for spawning to finish
+
+    //Only run the following lines if beside the spawner and it is not spawning, otherwise we'll interrupt a spawn
     creep.transfer(target, RESOURCE_ENERGY); //Transfer whatever we have before we blow up
-    var result = target.recycleCreep(creep);
+    var result = target.recycleCreep(creep);    
 
     if (result === OK)
         return true; //Success
-    else if(allowMove && result === ERR_NOT_IN_RANGE) {
-        moveTo(creep, target.pos);
-        return false;
-    }
     else
         return true; //Failed
 }
@@ -190,16 +201,23 @@ function continueRenew(creep, action) {
     return doRenew(creep, target, true);
 }
 function doRenew(creep, target, allowMove) {
+    if (!target)
+        return true; //Unknown target
+    if (!creep.pos.isNearTo(target.pos)) {
+        if (allowMove) {
+            moveTo(creep, target.pos);
+            return false;
+        }
+        return true;
+    }
     if (target.spawning)
         return false; //Wait for spawning to finish
-    var result = target.renewCreep(creep);
+
+    //Only run the following lines if beside the spawner and it is not spawning, otherwise we'll interrupt a spawn
+    var result = target.renewCreep(creep);    
 
     if (result === OK)
         return true; //Success
-    else if (allowMove && result === ERR_NOT_IN_RANGE) {
-        moveTo(creep, target.pos);
-        return false;
-    }
     else
         return true; //Failed
 }
@@ -383,6 +401,30 @@ function doHeal(creep, target, allowMove) {
         return true; //Failed
 }
 
+module.exports.rangedHeal = function(creep, target, allowMove) {
+    Game.debug.sayAction(creep, 'rangedHeal');
+    if (doRangedHeal(creep, target, allowMove) || !allowMove)
+        return false;
+    setAction(creep, 'rangedHeal', { target: target.name });
+    return true;
+}
+function continueRangedHeal(creep, action) {
+    var target = Game.creeps[action.target];
+    return doRangedHeal(creep, target, true);
+}
+function doRangedHeal(creep, target, allowMove) {
+    var result = creep.rangedHeal(target);
+
+    if (result === OK)
+        return false; //Continue
+    else if (allowMove && result === ERR_NOT_IN_RANGE) {
+        moveTo(creep, target.pos);
+        return false;
+    }
+    else
+        return true; //Failed
+}
+
 //Repairers
 module.exports.repair = function(creep, target, allowMove) {
     Game.debug.sayAction(creep, 'repair');
@@ -531,7 +573,7 @@ function continueRangedAttack(creep, action) {
     return doRangedAttack(creep, target, true);
 }
 function doRangedAttack(creep, target, allowMove) {
-    var result = creep.attack(target);
+    var result = creep.rangedAttack(target);
 
     if (result === OK)
         return true; //Success

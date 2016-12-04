@@ -122,7 +122,7 @@ function updateCreep(creep) {
             return;
 
         //TODO: This doesnt work across rooms
-        if (creep.ticksToLive < 250 && !actions.hasAction(creep, 'recycle')) {
+        if (creep.ticksToLive < 250 && !actions.hasAction(creep, 'recycle') && !creep.memory.military) {
             var base = Memory.bases[creep.memory.base];
             if (base) {
                 var spawn = Game.spawns[base.spawns[0]];

@@ -8,11 +8,13 @@
 0.96 - Harvester (harvesters < 6, collectors = 0)
 -
 0.92 - Reserver (unreserved adjacents)
+0.91 - Defenders (threatened)
 0.90 - Scout (unexplored adjacents)
 
 # Base Development (Don't allow others to pull out of spawn/extensions)
 0.89 - Repairer (repairers = 0, towerCount = 0)
 0.88 - Healer (healers = 0)
+0.87 - Scavenger (scavengers = 0)
 0.86 - Road Builder (road_builders = 0, road_sites > 0)
 0.84 - Structure Builder (structure_builders = 0, structure_sites > 0)
 0.82 - Defense Builder (defense_builders = 0, defense_sites > 0)
@@ -20,6 +22,7 @@
 0.80 - Harvester (harvesters < max)
 
 # Optimal Economy
+0.79 - Defenders (when low)
 0.78 - Collector (source_collectors < max_source_collectors)
 0.76 - Road Builder (road_builders < 2, road_sites > 0)
 0.74 - Structure Builder (structure_builders < 2, structure_sites > 0)
@@ -29,7 +32,6 @@
 0.68 - Road Builder (road_builders < 4, road_sites > 0)
 0.66 - Structure Builder (structure_builders < 4, structure_sites > 0)
 0.64 - Defense Builder (defense_builders < 4, defense_sites > 0)
-0.62 - Scavenger (scavengers = 0)
 - 0.62 - Repairer (repairers < 2)
 0.60 - Upgrader (upgraders < 3)
 

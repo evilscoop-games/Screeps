@@ -80,7 +80,7 @@ module.exports.addCoreRoom = function(base, room, roomMemory) {
     for (var i = 0; i < maxExtensions; i++) {
         var pos = mapUtils.getBuildPosition(room, coreSpawn.pos, 3, 25, costs);
         if (pos) {
-            listUtils.add(extensions, pos);
+            listUtils.add(extensions, mapUtils.serializePos(pos));
             setImpassable(costs, pos);
         }
     }
@@ -91,7 +91,7 @@ module.exports.addCoreRoom = function(base, room, roomMemory) {
     for (var i = 0; i < maxTowers; i++) {
         var pos = mapUtils.getBuildPosition(room, coreSpawn.pos, 6, 25, costs);
         if (pos) {
-            listUtils.add(towers, pos);
+            listUtils.add(towers, mapUtils.serializePos(pos));
             setImpassable(costs, pos);
             planRoadsBetween(roads, coreSpawn, pos, costs);
         }
@@ -103,7 +103,7 @@ module.exports.addCoreRoom = function(base, room, roomMemory) {
     for (var i = 0; i < maxStorages; i++) {
         var pos = mapUtils.getBuildPosition(room, coreSpawn.pos, 2, 25, costs);
         if (pos) {
-            listUtils.add(storages, pos);
+            listUtils.add(storages, mapUtils.serializePos(pos));
             setImpassable(costs, pos);
             planRoadsBetween(roads, coreSpawn, pos, costs);
         }
@@ -313,7 +313,7 @@ function planWall(walls, room, x, y, costs) {
     if (x >= 2 && y >= 2 && x < 48 && y < 48) {
         if (room.lookForAt(LOOK_TERRAIN, x, y)[0] !== 'wall') {
             var pos = new RoomPosition(x, y, room.name);
-            listUtils.add(walls, pos);
+            listUtils.add(walls, mapUtils.serializePos(pos));
             if (costs)
                 setImpassable(costs, pos);
         }

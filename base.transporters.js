@@ -17,6 +17,7 @@ module.exports.updateBase = function(base, actions, creepRequests, structureRequ
     var rechargerCount = roles['recharger'].creeps.length;
     var upgraderCount = roles['upgrader'].creeps.length;
     var towerCount = baseMemory.structures[STRUCTURE_TOWER].length;
+    var storageCount = baseMemory.structures[STRUCTURE_STORAGE].length;
     var containers = [];
     
     var totalDistance = 0;
@@ -24,15 +25,14 @@ module.exports.updateBase = function(base, actions, creepRequests, structureRequ
         var sourceMemory = Memory.sources[baseMemory.sources[i]];
         var sourceCollectors = sourceMemory.collectors.length;
         if (sourceMemory.container.ready) {
-            totalDistance += sourceMemory.distance;
+            totalDistance += sourceMemory.distance * 2; //There and back
             if (sourceMemory.container.amount > 250 * sourceCollectors)
                 listUtils.add(containers, baseMemory.sources[i]);
         }
     }
-    totalDistance *= 2; //There and back.
-    var maxCollectorCount = Math.ceil(totalDistance / 15);
+    var maxCollectorPartCount = Math.ceil(totalDistance / 5);
 
-    if (collectorCarryParts < maxCollectorCount) {
+    if (collectorCarryParts < maxCollectorPartCount) {
         var priority;
         var memory = { role: 'collector' };
         if (collectorCarryParts < harvesterCount)
@@ -53,7 +53,7 @@ module.exports.updateBase = function(base, actions, creepRequests, structureRequ
     }
 
     if (level > 1) {
-        var targetRechargerCount = towerCount + Math.floor((upgraderCount /*+ defenseBuilderCount + roadBuilderCount + structureBuilderCount*/) * 0.5);
+        var targetRechargerCount = towerCount + storageCount * 2 + Math.floor((upgraderCount /*+ defenseBuilderCount + roadBuilderCount + structureBuilderCount*/) * 0.5);
         if (rechargerCount < targetRechargerCount) {
             var priority = 0.97;
             var memory = { role: 'recharger' };

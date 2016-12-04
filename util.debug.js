@@ -122,12 +122,29 @@ module.exports.reclaimRoom = function(baseName, roomName) {
 }
 
 //Temporary
-/*var mapUtils = require('util.map');
-module.exports.convert = function(name) {
+/*module.exports.reAddWalls = function(baseName) {
+    var baseMemory = Memory.bases[baseName];
+    var walls = [], ramparts = [];
+    var currentWalls = Game.rooms[baseName].find(FIND_STRUCTURES, { filter: x => x.structureType === STRUCTURE_WALL });
+    var currentRamparts = Game.rooms[baseName].find(FIND_STRUCTURES, { filter: x => x.structureType === STRUCTURE_RAMPART });
+
+    var mapUtils = require('util.map');
+    for (var i = 0; i < currentWalls.length; i++)
+        walls.push(mapUtils.serializePos(currentWalls[i].pos));
+    for (var i = 0; i < currentRamparts.length; i++)
+        ramparts.push(mapUtils.serializePos(currentRamparts[i].pos));
+
+    baseMemory.plan.built[STRUCTURE_WALL] = walls;
+    baseMemory.plan.built[STRUCTURE_RAMPART] = ramparts;
+    baseMemory.plan.queued[STRUCTURE_WALL] = [];
+    baseMemory.plan.queued[STRUCTURE_RAMPART] = [];
+}
+module.exports.convertPlan = function(name) {
     var baseMemory = Memory.bases[name];
     if (!baseMemory)
         return "Unknown base"
 
+    var mapUtils = require('util.map');
     var queued = baseMemory.plan.queued;
     var built = baseMemory.plan.built;
     for (var structureType in queued) {

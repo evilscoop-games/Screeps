@@ -46,7 +46,7 @@ module.exports.updateBase = function(base, actions, creepRequests, structureRequ
     }
     
     //Do we need an upgrader?
-    if (upgraderWorkParts === 0 || (upgradeNeeded && upgraderWorkParts < 6)) {
+    if (upgraderWorkParts === 0 || (upgradeNeeded && upgraderWorkParts < level * 3)) {
         var memory = { role: 'upgrader', target: controller.id };
         if (upgraders.creeps.length === 0)
             requestUtils.add(creepRequests, 0.80, memory);

@@ -73,6 +73,14 @@ module.exports.updateBase = function(base, actions, creepRequests, structureRequ
             var sourceWorkParts = 0;
             for (var j = 0; j < sourceMemory.harvesters.length; j++)
                 sourceWorkParts += Memory.creeps[sourceMemory.harvesters[j]].parts.work;
+
+            var maxSourceWorkParts;
+            var room = Game.rooms[sourceMemory.room];
+            if (!room || !mapUtils.isReserved(room))
+                maxSourceWorkParts = 3;
+            else
+                maxSourceWorkParts = 6;
+
             if (sourceWorkParts < 6) {
                 var id = baseMemory.sources[i];
                 var roomMemory = Memory.rooms[Memory.sources[id].room];
@@ -100,7 +108,7 @@ module.exports.updateBase = function(base, actions, creepRequests, structureRequ
         var memory = {
             role: 'scavenger',
         };
-        requestUtils.add(creepRequests, 0.62, memory);
+        requestUtils.add(creepRequests, 0.87, memory);
     }
     
     var level = Game.rooms[base.name].controller.level;

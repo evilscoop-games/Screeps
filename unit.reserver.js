@@ -4,7 +4,7 @@ var memoryUtils = require('util.memory');
 var partUtils = require('util.parts');
 var scanner = require('util.scanner');
 
-const CORE_PARTS = [MOVE,CLAIM,CLAIM];
+const CORE_PARTS = [MOVE,MOVE,CLAIM,CLAIM];
 const REPEAT_PARTS = [MOVE,CLAIM];
 
 module.exports.getBodyInfo = function(energy) {
@@ -28,7 +28,7 @@ module.exports.update = function(creep, memory, actions) {
     else {
         var pos = creep.pos.findClosestByPath(creep.room.findExitTo(memory.target));
         if (pos) {
-            if (actions.moveTo(creep, pos))
+            if (actions.moveTo(creep, pos, true))
                 return;
         }
     }
