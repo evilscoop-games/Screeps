@@ -8,8 +8,7 @@ module.exports.updateGlobal = function(actions) {
 
 module.exports.updateBase = function(base, actions, creepRequests, structureRequests, defenseRequests) {
     var baseMemory = base.memory;
-    var totalThreatLevel = 0;
-    var totalDefenseLevel = 0;
+    var level = Game.rooms[base.name].controller.level;
     var threatRooms = [];
     var melee = Memory.military.roles.melee;
     var ranged = Memory.military.roles.ranged;
@@ -20,7 +19,7 @@ module.exports.updateBase = function(base, actions, creepRequests, structureRequ
         var roomName = baseMemory.rooms[i];
         var roomMemory = Memory.rooms[roomName];
 
-        if (roomMemory.threatLevel > roomMemory.defenseLevel)
+        if (roomMemory.threatLevel * 1.2 > roomMemory.defenseLevel + roomMemory.staticDefenseLevel)
             listUtils.add(threatRooms, roomName);
 
         if (roomMemory.threatLevel === 0) {
@@ -31,12 +30,7 @@ module.exports.updateBase = function(base, actions, creepRequests, structureRequ
             }
         }
         
-        totalThreatLevel += roomMemory.threatLevel;
-        totalDefenseLevel += roomMemory.defenseLevel;
     }
-
-    baseMemory.threatLevel = totalThreatLevel;
-    baseMemory.defenseLevel = totalDefenseLevel;
 
     var memory = {
         military: true
@@ -48,11 +42,11 @@ module.exports.updateBase = function(base, actions, creepRequests, structureRequ
     else
         memory.role = 'melee';
 
-    if (totalThreatLevel > totalDefenseLevel) {
+    if (baseMemory.threatLevel > baseMemory.defenseLevel) {
         console.log('Threat alert! (' + baseMemory.defenseLevel + ' vs ' + baseMemory.threatLevel + ')');
-        requestUtils.add(creepRequests, 0.91, memory);
+        requestUtils.add(creepRequests, 0.95, memory);
     }
-    else if (totalDefenseLevel < 5000)
+    else if (baseMemory.defenseLevel < 2500 * level)
         requestUtils.add(creepRequests, 0.79, memory);
 
     //Redirect current units

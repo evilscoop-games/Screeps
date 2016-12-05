@@ -2,11 +2,11 @@
 var mapUtils = require('util.map');
 var partUtils = require('util.parts');
 
-const CORE_PARTS = [CARRY, CARRY, CARRY, MOVE, MOVE, MOVE]; //300
-const REPEAT_PARTS = [CARRY, MOVE]; //100
+const CORE_PARTS = [CARRY, CARRY, CARRY, MOVE, MOVE, MOVE]; //200
+const REPEAT_PARTS = [];
 
 module.exports.getBodyInfo = function(energy) {
-    return partUtils.get(CORE_PARTS, REPEAT_PARTS, Math.min(energy, 500));
+    return partUtils.get(CORE_PARTS, REPEAT_PARTS, Math.min(energy, 300));
 }
 
 module.exports.onCreate = function(name, memory) {
@@ -51,40 +51,17 @@ module.exports.update = function(creep, memory, actions) {
     }
 }
 
-function findTarget(creep, neededEnergy) {
-    var baseMemory = Memory.bases[creep.memory.base];
-    if (neededEnergy === 0)
-        neededEnergy = 25;
+function findTarget(creep) {
+    var baseMemory = Memory.bases[creep.memory.base];    
 
-    for (var energy = neededEnergy; energy >= 0; energy -= 50) {
+    if (baseMemory.structures[STRUCTURE_STORAGE].length !== 0) {
         var targetStructure = creep.pos.findClosestByPath(FIND_MY_STRUCTURES, { filter: (x) => {
             var type = x.structureType;
-            return (type === STRUCTURE_TOWER) && 
-                (x.energyCapacity - x.energy) >= energy;
+            return (type === STRUCTURE_SPAWN || type === STRUCTURE_EXTENSION) && 
+                x.energy !== x.energyCapacity;
         }});
         if (targetStructure)
             return targetStructure;
-            
-        var targetCreep = creep.pos.findClosestByPath(FIND_MY_CREEPS, { filter: (x) => {
-            var role = x.memory.role;
-            return (role === 'upgrader') && 
-                !x.memory.recharger &&
-                (x.carryCapacity - x.carry.energy) >= energy;
-        }});
-        if (targetCreep)
-            return targetCreep;
-    }
-    
-    for (var energy = neededEnergy; energy >= 0; energy -= 50) {
-        if (baseMemory.structures[STRUCTURE_STORAGE].length !== 0) {
-            var targetStructure = creep.pos.findClosestByPath(FIND_MY_STRUCTURES, { filter: (x) => {
-                var type = x.structureType;
-                return (type === STRUCTURE_SPAWN || type === STRUCTURE_EXTENSION) && 
-                    (x.energyCapacity - x.energy) >= energy;
-            }});
-            if (targetStructure)
-                return targetStructure;
-        }
     }
 }
 

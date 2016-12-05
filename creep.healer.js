@@ -1,11 +1,11 @@
 "use strict";
 var partUtils = require('util.parts');
 
-const CORE_PARTS = [HEAL, CARRY, MOVE, MOVE];
-const REPEAT_PARTS = [HEAL, CARRY, MOVE, MOVE];
+const CORE_PARTS = [HEAL,  MOVE]; //300
+const REPEAT_PARTS = [HEAL,  MOVE]; //300
 
 module.exports.getBodyInfo = function(energy) {
-    return partUtils.get(CORE_PARTS, REPEAT_PARTS, energy);
+    return partUtils.get(CORE_PARTS, REPEAT_PARTS, Math.min(energy, 600));
 }
 
 module.exports.onCreate = function(name, memory) {
@@ -21,24 +21,27 @@ module.exports.update = function(creep, memory, actions) {
 
     unclaimTarget(memory);
 
-    if (creep.carry.energy > 0) {
-        var target = findTarget(creep);
-        if (target) {
-            creep.memory.target = target.name;
-            target.memory.healer = creep.id;
-            if (actions.heal(creep, target, true))
-                return;
+    var target = findTarget(creep, baseMemory);
+    if (target) {
+        creep.memory.target = target.name;
+        target.memory.healer = creep.id;
+        if (actions.heal(creep, target, true)) {
+            actions.rangedHeal(creep, target, false);
+            return;
         }
     }
 }
 
-function findTarget(creep) {
-    var targetCreep = creep.pos.findClosestByPath(FIND_MY_CREEPS, { filter: (x) => {
-        return x.hits < x.hitsMax &&
-            !x.memory.healer;
-    }});
-    if (targetCreep)
-        return targetCreep;  
+function findTarget(creep, baseMemory) {
+    for (var role in baseMemory.roles) {
+        var creeps = baseMemory.roles[role].creeps;
+        for (var i = 0; i < creeps.length; i++) {
+            var creep = Game.creeps[creeps[i]];
+            if (creep.hits !== creep.hitsMax)
+                return creep;
+        }
+    }
+    return null;
 }
 
 function unclaimTarget(memory) {    

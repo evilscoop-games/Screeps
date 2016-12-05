@@ -3,8 +3,8 @@ var listUtils = require('util.list');
 var mapUtils = require('util.map');
 var partUtils = require('util.parts');
 
-const CORE_PARTS = [TOUGH,TOUGH,MOVE,MOVE,MOVE,ATTACK];
-const REPEAT_PARTS = [TOUGH,MOVE,ATTACK];
+const CORE_PARTS = [TOUGH,TOUGH,MOVE,MOVE,MOVE,ATTACK]; //250
+const REPEAT_PARTS = [TOUGH,MOVE,MOVE,ATTACK]; //190
 
 module.exports.getBodyInfo = function(energy) {
     return partUtils.get(CORE_PARTS, REPEAT_PARTS, energy);
@@ -23,10 +23,9 @@ module.exports.onDestroy = function(name, memory) {
 module.exports.update = function(creep, memory, actions) {
     if (memory.room && creep.pos.roomName !== memory.room) {
         var pos = creep.pos.findClosestByPath(creep.room.findExitTo(memory.room));
-        if (pos) {
+        if (pos)
             actions.moveTo(creep, pos, true);
-            return;
-        }
+        return;
     }
     var roomMemory = Memory.rooms[memory.room];
     if (roomMemory) {
@@ -36,4 +35,8 @@ module.exports.update = function(creep, memory, actions) {
             return;
         }
     }
+    
+    roomMemory = Memory.rooms[creep.pos.roomName];
+    if (roomMemory && roomMemory.rallyPos)
+        actions.moveTo(creep, mapUtils.deserializePos(roomMemory.rallyPos));
 }

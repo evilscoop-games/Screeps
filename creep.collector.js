@@ -4,7 +4,7 @@ var mapUtils = require('util.map');
 var partUtils = require('util.parts');
 
 const CORE_PARTS = [CARRY, CARRY, CARRY, CARRY, MOVE, MOVE]; //300
-const REPEAT_PARTS = [CARRY, CARRY, MOVE];
+const REPEAT_PARTS = [CARRY, CARRY, MOVE]; //150
 
 module.exports.getBodyInfo = function(energy) {
     return partUtils.get(CORE_PARTS, REPEAT_PARTS, energy);

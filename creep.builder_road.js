@@ -2,11 +2,11 @@
 var mapUtils = require('util.map');
 var partUtils = require('util.parts');
 
-const CORE_PARTS = [WORK, CARRY, MOVE, MOVE];
-const REPEAT_PARTS = [WORK, CARRY, MOVE, MOVE];
+const CORE_PARTS = [WORK, CARRY, MOVE, MOVE]; //250
+const REPEAT_PARTS = [WORK, CARRY, CARRY, CARRY, MOVE, MOVE]; //350
 
 module.exports.getBodyInfo = function(energy) {
-    return partUtils.get(CORE_PARTS, REPEAT_PARTS, energy);
+    return partUtils.get(CORE_PARTS, REPEAT_PARTS, Math.min(600, energy));
 }
 
 module.exports.onCreate = function(name, memory) {
@@ -19,7 +19,8 @@ module.exports.update = function(creep, memory, actions) {
     var baseMemory = Memory.bases[memory.base];
     var coreSpawn = Game.spawns[baseMemory.spawns[0]];
 
-    if(creep.carry.energy < 50) {
+    if(creep.carry.energy < 25) {
+        delete memory.target;
         var mayUseSpawn = baseMemory.construction.requestedCreepPriority < 0.80;
         var storage = mapUtils.findStorage(creep.pos, Game.bases[memory.base], creep.carryCapacity - creep.carry.energy, mayUseSpawn);
         if (storage) {
@@ -38,10 +39,12 @@ module.exports.update = function(creep, memory, actions) {
             var structure = Game.structures[memory.target];
             if (!structure)
                 structure = Game.getObjectById(memory.target);
-            if (structure) {
+            if (structure && structure.hits < structure.hitsMax) {
                 if (actions.repair(creep, structure, true)) 
                     return;
             }
+            else
+                delete memory.target;
         }
     }
 }

@@ -11,22 +11,22 @@ module.exports.updateBase = function(base, actions, creepRequests, structureRequ
         var roomName = baseMemory.rooms[i];
         var room = Game.rooms[roomName];
         var roomMemory = Memory.rooms[roomName];
-        if (room && roomMemory && !roomMemory.reserver) {
+        if (room && roomMemory && !roomMemory.reserver && roomMemory.threatLevel === 0) {
             var controller = room.controller;
-            if (controller && !controller.my) {
+            if (controller && !controller.owner) {// !controller.my) {
                 var reservation = controller.reservation;
                 if (!reservation ||
                         (reservation.username === "RogueException" || 
                         reservation.username === "Voltana" || 
                         reservation.username === "Shira") &&
-                        reservation.ticksToEnd < 4000) {
+                        reservation.ticksToEnd < 4500) {
                     var memory = {
                         military: true, 
                         special: true,
                         role: 'reserver', 
                         target: roomName 
                     };
-                    requestUtils.add(creepRequests, 0.92, memory);
+                    requestUtils.add(creepRequests, 0.90, memory);
                 }
             }
         }

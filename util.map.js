@@ -217,34 +217,6 @@ module.exports.serializeRelativePath = function(path) {
 }
 
 //Build planning
-module.exports.getBuildPosition = function(room, center, minRadius, maxRadius, costs) {
-    for (var max = minRadius; max <= maxRadius; max += 2) {
-        var radius = max - minRadius;
-        for (var i = 0; i < 5; i++) {
-            var xOffset = Math.random() * radius * 2 - radius;
-            xOffset += (xOffset > 0) ? minRadius : -minRadius; 
-            var yOffset = Math.random() * radius * 2 - radius;
-            yOffset += (yOffset > 0) ? minRadius : -minRadius;
-            var x = Math.round(center.x + xOffset);
-            var y = Math.round(center.y + yOffset);
-
-            if (x >= 0 && y >= 0 && x < 50 && y < 50 && !costs.get(x, y)) {
-                var results = room.lookAt(x, y);
-                var valid = true;
-                for (var j = 0; j < results.length; j++) {
-                    if (results[j].type !== LOOK_TERRAIN || results[j].terrain === 'wall') {
-                        valid = false;
-                        break;
-                    }
-                }
-                if (valid)
-                    return new RoomPosition(x, y, room.name);
-            }
-        }
-    }
-    return null;
-}
-
 module.exports.findSpacesAround = function(pos) {
     var result = [];
     if (pos.y !== 0) {

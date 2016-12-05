@@ -3,7 +3,7 @@ var listUtils = require('util.list');
 var mapUtils = require('util.map');
 var partUtils = require('util.parts');
 
-const CORE_PARTS = [WORK, CARRY, MOVE, MOVE];
+const CORE_PARTS = [WORK, CARRY, MOVE, MOVE]; //250
 const REPEAT_PARTS = [];
 
 module.exports.getBodyInfo = function(energy) {

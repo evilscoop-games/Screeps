@@ -1,4 +1,5 @@
 "use strict";
+var listUtils = require('util.list');
 var mapUtils = require('util.map');
 
 var actions = {
@@ -156,6 +157,7 @@ function doPickup(creep, target, allowMove) {
 }
 
 module.exports.recycle = function(creep, target, allowMove) {
+    //console.log('Recycling ' + creep.name);
     Game.debug.sayAction(creep, 'recycle');
     if (doRecycle(creep, target, allowMove) || !allowMove)
         return false;
@@ -190,7 +192,11 @@ function doRecycle(creep, target, allowMove) {
 }
 
 module.exports.renew = function(creep, target, allowMove) {
+    //console.log('Renewing ' + creep.name);
     Game.debug.sayAction(creep, 'renew');
+    if (!target)
+        return true;
+    listUtils.add(target.memory.queue, creep.name);
     if (doRenew(creep, target, allowMove) || !allowMove)
         return false;
     setAction(creep, 'renew', { target: target.name });
@@ -208,18 +214,10 @@ function doRenew(creep, target, allowMove) {
             moveTo(creep, target.pos);
             return false;
         }
-        return true;
+        else
+            return true;
     }
-    if (target.spawning)
-        return false; //Wait for spawning to finish
-
-    //Only run the following lines if beside the spawner and it is not spawning, otherwise we'll interrupt a spawn
-    var result = target.renewCreep(creep);    
-
-    if (result === OK)
-        return true; //Success
-    else
-        return true; //Failed
+    return false; //Wait
 }
 
 //Secondary: Transfers

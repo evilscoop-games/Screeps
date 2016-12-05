@@ -3,11 +3,11 @@ var listUtils = require('util.list');
 var mapUtils = require('util.map');
 var partUtils = require('util.parts');
 
-const CORE_PARTS = [WORK, WORK, CARRY, MOVE];
-const REPEAT_PARTS = [WORK, MOVE];
+const CORE_PARTS = [WORK, WORK, CARRY, MOVE]; //300
+const REPEAT_PARTS = [WORK, MOVE]; //150
 
 module.exports.getBodyInfo = function(energy) {
-    return partUtils.get(CORE_PARTS, REPEAT_PARTS, energy);
+    return partUtils.get(CORE_PARTS, REPEAT_PARTS, Math.min(energy, 900));
 }
 
 module.exports.onCreate = function(name, memory) {
@@ -52,7 +52,9 @@ module.exports.update = function(creep, memory, actions) {
                     return;
             }
         }
-        if (actions.harvest(creep, target, true))
-            return;
+        if (_.sum(creep.carry) !== creep.carryCapacity) {
+            if (actions.harvest(creep, target, true))
+                return;
+        }
     }
 }

@@ -24,6 +24,7 @@ module.exports.init = function() {
     Memory.minerals = {};
     Memory.sources = {};
     Memory.structures = {};
+    Memory.timers = {};
 
     Game.bases = {};
 }
@@ -46,7 +47,8 @@ module.exports.createBase = function() {
         plan: {
             queued: {},
             built: {}
-        }
+        },
+        timers: {}
     };
 }
 

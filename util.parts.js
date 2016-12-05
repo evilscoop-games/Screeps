@@ -1,11 +1,11 @@
 "use strict";
 module.exports.get = function(initialParts, repeatParts, maxCost) {
     var body = [].concat(initialParts);
-    var currentCost = calcBodyCost(initialParts);
+    var currentCost = getCost(initialParts);
     var nextCost;
 
     if (repeatParts.length > 0) {
-        var partsCost = calcBodyCost(repeatParts);
+        var partsCost = getCost(repeatParts);
         nextCost = currentCost + partsCost;
         while(nextCost <= maxCost || body.length === 0) {
             body = body.concat(repeatParts);
@@ -16,12 +16,12 @@ module.exports.get = function(initialParts, repeatParts, maxCost) {
         //Body cannot have more than 50 parts
         if (body.length > 50) {
             body = body.slice(0, 50);
-            cost = calcBodyCost(nextBody);
+            cost = getCost(nextBody);
             nextCost = 0;
         }
         else if (body.length + repeatParts.length > 50) {
             var nextBody = body.concat(repeatParts.slice(0, 50 - (body.length + repeatParts.length))) 
-            nextCost = calcBodyCost(nextBody);
+            nextCost = getCost(nextBody);
         }
     }
     else
@@ -42,9 +42,14 @@ module.exports.getPowerLevel = function(creep) {
     return (attack * 800) + (rangedAttack * 1500) + (heal * 2500) + hits;
 }
 
-function calcBodyCost(body) {
+function getCost(body) {
     var cost = 0;
-    for (var i = 0; i < body.length; i++)
-        cost += BODYPART_COST[body[i]];
+    for (var i = 0; i < body.length; i++) {
+        if (body[i].type)
+            cost += BODYPART_COST[body[i].type];
+        else
+            cost += BODYPART_COST[body[i]];
+    }
     return cost;
-} 
+}
+module.exports.getCost = getCost;

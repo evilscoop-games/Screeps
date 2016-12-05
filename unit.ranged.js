@@ -23,11 +23,11 @@ module.exports.onDestroy = function(name, memory) {
 module.exports.update = function(creep, memory, actions) {
     if (memory.room && creep.pos.roomName !== memory.room) {
         var pos = creep.pos.findClosestByPath(creep.room.findExitTo(memory.room));
-        if (pos) {
+        if (pos)
             actions.moveTo(creep, pos, true);
-            return;
-        }
+        return;
     }
+
     var roomMemory = Memory.rooms[memory.room];
     if (roomMemory) {
         var hostile = mapUtils.findClosestHostileByPath(creep.pos, roomMemory.hostiles);
@@ -36,4 +36,8 @@ module.exports.update = function(creep, memory, actions) {
             return;
         }
     }
+    
+    roomMemory = Memory.rooms[creep.pos.roomName];
+    if (roomMemory && roomMemory.rallyPos)
+        actions.moveTo(creep, mapUtils.deserializePos(roomMemory.rallyPos));
 }

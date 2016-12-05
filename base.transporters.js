@@ -14,6 +14,7 @@ module.exports.updateBase = function(base, actions, creepRequests, structureRequ
     var collectors = roles['collector'];
     var collectorCarryParts = collectors.parts.carry;
     var harvesterCount = roles['harvester'].creeps.length;
+    var coreRechargerCount = roles['recharger_core'].creeps.length;
     var rechargerCount = roles['recharger'].creeps.length;
     var upgraderCount = roles['upgrader'].creeps.length;
     var towerCount = baseMemory.structures[STRUCTURE_TOWER].length;
@@ -23,10 +24,13 @@ module.exports.updateBase = function(base, actions, creepRequests, structureRequ
     var totalDistance = 0;
     for (var i = 0; i < baseMemory.sources.length; i++) {
         var sourceMemory = Memory.sources[baseMemory.sources[i]];
-        var sourceCollectors = sourceMemory.collectors.length;
+        var sourceCollectors = sourceMemory.collectors;
         if (sourceMemory.container.ready) {
             totalDistance += sourceMemory.distance * 2; //There and back
-            if (sourceMemory.container.amount > 250 * sourceCollectors)
+            var carry = 0;
+            for (var j = 0; j < sourceCollectors.length; j++)
+                carry += Memory.creeps[sourceCollectors[j]].parts.carry;
+            if (sourceMemory.container.amount > 50 * carry)
                 listUtils.add(containers, baseMemory.sources[i]);
         }
     }
@@ -35,7 +39,7 @@ module.exports.updateBase = function(base, actions, creepRequests, structureRequ
     if (collectorCarryParts < maxCollectorPartCount) {
         var priority;
         var memory = { role: 'collector' };
-        if (collectorCarryParts < harvesterCount)
+        if (collectorCarryParts < harvesterCount * 6)
             priority = 0.98;
         else
             priority = 0.78;
@@ -45,19 +49,41 @@ module.exports.updateBase = function(base, actions, creepRequests, structureRequ
     for (var i = 0; i < collectors.creeps.length && containers.length !== 0; i++) {
         var name = collectors.creeps[i];
         var creepMemory = Memory.creeps[name];
-        if (!creepMemory.target) {
-            var sourceId = containers.shift();
+        if (!creepMemory.target && containers.length > 0) {
+            var bestSource = Memory.sources[containers[0]];
+            var bestIndex = 0;
+            for (var j = 1; j < containers.length; j++) {
+                var sourceMemory = Memory.sources[containers[j]];
+                if (sourceMemory.container.amount > bestSource.container.amount) {
+                    bestSource = sourceMemory;
+                    bestIndex = j;
+                }
+            }
+            var sourceId = containers[bestIndex];
             creepMemory.target = sourceId;
+            listUtils.removeAt(containers, bestIndex);
             listUtils.add(Memory.sources[sourceId].collectors, name);    
         }
     }
 
-    if (level > 1) {
-        var targetRechargerCount = towerCount + storageCount * 2 + Math.floor((upgraderCount /*+ defenseBuilderCount + roadBuilderCount + structureBuilderCount*/) * 0.5);
-        if (rechargerCount < targetRechargerCount) {
-            var priority = 0.97;
-            var memory = { role: 'recharger' };
-            requestUtils.add(creepRequests, priority, memory);
-        } 
+    if (storageCount !== 0 && coreRechargerCount < level - 1) {
+        var memory = { role: 'recharger_core' };
+        if (coreRechargerCount === 0)
+            requestUtils.add(creepRequests, 0.99, memory);
+        else
+            requestUtils.add(creepRequests, 0.97, memory);
     }
+
+    var targetRechargerCount = towerCount;    
+    if (level > 1)
+        targetRechargerCount += Math.floor((upgraderCount /*+ defenseBuilderCount + roadBuilderCount + structureBuilderCount*/) * 0.5);
+    if (rechargerCount < targetRechargerCount) {
+        var priority;
+        var memory = { role: 'recharger' };
+        if (rechargerCount < towerCount)
+            priority = 0.94;
+        else
+            priority = 0.79;
+        requestUtils.add(creepRequests, priority, memory);
+    } 
 }

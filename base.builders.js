@@ -1,4 +1,6 @@
 "use strict";
+var listUtils = require("util.list");
+var mapUtils = require("util.map");
 var requestUtils = require("util.requests");
 
 module.exports.updateGlobal = function(actions) {
@@ -15,116 +17,128 @@ module.exports.updateBase = function(base, actions, creepRequests, structureRequ
     var structureBuilders = roles['builder_structure'];
     var structureBuilderWorkParts = structureBuilders.parts.work;
     var repairers = roles['repairer'];
-    var healerCount = roles['healer'].length;
+    var healerCount = roles['healer'].creeps.length;
     var towerCount = baseMemory.structures[STRUCTURE_TOWER].length;
-    var structureTarget = null, roadTarget = null, defenseTarget = null, repairTarget = null, fallbackTarget = null;
-    var isRepairCritical = false;
+    var structureTarget = null, roadTarget = null, defenseTarget = null;
+    var structureRepairTargets = [], criticalDefenseRepairTargets = [], defenseRepairTargets = [], roadRepairTargets = []
     
-    //Find next repair targets
+    //Find defenses to repair
+    for (var type in baseMemory.structures) {
+        var structures = baseMemory.structures[type];
+        for (var i = 0; i < structures.length; i++) {
+            var structure = Game.structures[structures[i]];
+            if (structure.hits < structure.hitsMax) {
+                listUtils.add(structureRepairTargets, structure.id);
+                break;
+            }
+        }
+    }
     for (var i = 0; i < baseMemory.rooms.length; i++) {
         var room = Game.rooms[baseMemory.rooms[i]];
         if (room) {
-            //Search for weak ramparts first (due to decay)
-            var targets = room.find(FIND_MY_STRUCTURES, { filter: x => {
-                return x.structureType === STRUCTURE_RAMPART && x.hits < 10000;
+            //Search for any hurt road
+            var targets = room.find(FIND_STRUCTURES, { filter: x => {
+                return (x.structureType === STRUCTURE_ROAD &&
+                    x.hits < x.hitsMax);
             }});
             if (targets.length !== 0) {
-                repairTarget = targets[0].id;
-                isRepairCritical = true;
-                break;
+                for (var j = 0; j < targets.length; j++)
+                    listUtils.add(roadRepairTargets, targets[j].id);
             }
-        }
-    }
-    if (!repairTarget) {
-        for (var type in baseMemory.structures) {
-            var structures = baseMemory.structures[type];
-            for (var i = 0; i < structures.length; i++) {
-                var structure = Game.structures[structures[i]];
-                if (structure.hits < structure.hitsMax) {
-                    repairTarget = structure.id;
-                    break;
-                }
-            }
-            if (repairTarget)
-                break;
-        }
-    }
-    if (!repairTarget) {
-        for (var i = 0; i < baseMemory.rooms.length; i++) {
-            var room = Game.rooms[baseMemory.rooms[i]];
-            if (room) {
-                //Search for any hurt road
-                var targets = room.find(FIND_STRUCTURES, { filter: x => {
-                    return (x.structureType === STRUCTURE_ROAD &&
-                        x.hits < x.hitsMax);
-                }});
-                if (targets.length !== 0) {
-                    repairTarget = targets[0].id;
-                    roadTarget = repairTarget;
-                    break;
-                }
 
-                //Search for any hurt wall
-                for (var hits = 1000; hits <= 1000000000; hits *= 10) {
-                    for (var i = 0; i < baseMemory.rooms.length; i++) {
-                        var targets = room.find(FIND_STRUCTURES, { filter: x => {
-                            return ((x.structureType === STRUCTURE_RAMPART && x.my) ||
-                                x.structureType === STRUCTURE_WALL) &&
-                                x.hits < hits;
-                        }});
-                        if (targets.length !== 0) {
-                            repairTarget = targets[0].id;
-                            break;
+            //Search for any hurt wall
+            for (var i = 0; i < baseMemory.rooms.length; i++) {
+                for (var hits = 10000; hits <= 1000000000; hits *= 10) {
+                    var targets = room.find(FIND_STRUCTURES, { filter: x => {
+                        return ((x.structureType === STRUCTURE_RAMPART && x.my) ||
+                            x.structureType === STRUCTURE_WALL) &&
+                            x.hits < hits;
+                    }});
+                    if (targets.length > 0) {
+                        if (hits === 10000) {
+                            for (var j = 0; j < targets.length; j++)
+                                listUtils.add(criticalDefenseRepairTargets, targets[j].id);
                         }
-                    }
-                    if (repairTarget)
+                        else {
+                            for (var j = 0; j < targets.length; j++)
+                                listUtils.add(defenseRepairTargets, targets[j].id);
+                        }
                         break;
-                }                
-            }
+                    }
+                }
+            }              
         }
     }
     //Find next build targets for this base
-    if (baseMemory.construction.structures.length !== 0) {
+    if (baseMemory.construction.structures.length !== 0)
         structureTarget = baseMemory.construction.structures[0];
-        if (fallbackTarget === null)
-            fallbackTarget = structureTarget;
-    }
-    if (roadTarget === null && baseMemory.construction.roads.length !== 0) {
+    if (baseMemory.construction.roads.length !== 0)
         roadTarget = baseMemory.construction.roads[0];
-        if (fallbackTarget === null)
-            fallbackTarget = roadTarget;
-    }
-    if (isRepairCritical || baseMemory.construction.defenses.length === 0)
-        defenseTarget = repairTarget;
-    else if (baseMemory.construction.defenses.length !== 0)
+    if (baseMemory.construction.defenses.length !== 0)
         defenseTarget = baseMemory.construction.defenses[0];
-    if (fallbackTarget === null) {
-        if (defenseTarget !== null)
-            fallbackTarget = defenseTarget;
-        else
-            fallbackTarget = repairTarget;
-    }
-
-    //Select other building types, if a given primary isn't found
-    if (structureTarget === null)
-        structureTarget = fallbackTarget;
-    if (roadTarget === null)
-        roadTarget = fallbackTarget;
-    if (defenseTarget === null)
-        defenseTarget = fallbackTarget;
 
     //Assign targets to builders
-    for (var i = 0; i < structureBuilders.creeps.length; i++)
-        Memory.creeps[structureBuilders.creeps[i]].target = structureTarget;
-    for (var i = 0; i < roadBuilders.creeps.length; i++)
-        Memory.creeps[roadBuilders.creeps[i]].target = roadTarget;
-    for (var i = 0; i < defenseBuilders.creeps.length; i++)
-        Memory.creeps[defenseBuilders.creeps[i]].target = defenseTarget;
-    for (var i = 0; i < repairers.creeps.length; i++)
-        Memory.creeps[repairers.creeps[i]].target = repairTarget;
+    var targetGroups = [
+        [structureTarget, defenseTarget, roadTarget], 
+        criticalDefenseRepairTargets, 
+        structureRepairTargets, 
+        defenseRepairTargets, 
+        roadRepairTargets
+    ];
+    for (var i = 0; i < structureBuilders.creeps.length; i++) {
+        var creepMemory = Memory.creeps[structureBuilders.creeps[i]];
+        if (!creepMemory.target) {
+            var pos = Game.creeps[structureBuilders.creeps[i]].pos;
+            creepMemory.target = findTarget(pos, targetGroups);
+        }
+    }
+    
+    var targetGroups = [
+        [roadTarget, structureTarget, defenseTarget], 
+        criticalDefenseRepairTargets, 
+        roadRepairTargets,
+        structureRepairTargets, 
+        defenseRepairTargets
+    ];
+    for (var i = 0; i < roadBuilders.creeps.length; i++) {
+        var creepMemory = Memory.creeps[roadBuilders.creeps[i]];
+        if (!creepMemory.target) {
+            var pos = Game.creeps[roadBuilders.creeps[i]].pos;
+            creepMemory.target = findTarget(pos, targetGroups);
+        }
+    }
+
+    var targetGroups = [
+        [defenseTarget, roadTarget, structureTarget], 
+        criticalDefenseRepairTargets, 
+        defenseRepairTargets, 
+        roadRepairTargets,
+        structureRepairTargets
+    ];
+    for (var i = 0; i < defenseBuilders.creeps.length; i++) {
+        var creepMemory = Memory.creeps[defenseBuilders.creeps[i]];
+        if (!creepMemory.target) {
+            var pos = Game.creeps[defenseBuilders.creeps[i]].pos;
+            creepMemory.target = findTarget(pos, targetGroups);
+        }
+    }        
+    
+    var targetGroups = [
+        criticalDefenseRepairTargets, 
+        roadRepairTargets,
+        structureRepairTargets,
+        defenseRepairTargets
+    ];
+    for (var i = 0; i < repairers.creeps.length; i++) {
+        var creepMemory = Memory.creeps[repairers.creeps[i]];
+        if (!creepMemory.target) {
+            var pos = Game.creeps[repairers.creeps[i]].pos;
+            creepMemory.target = findTarget(pos, targetGroups);
+        }
+    }
 
     //Request more creeps        
-    if ((repairers.length === 0 && towerCount === 0) || repairers.length < level - 1) {
+    if ((repairers.creeps.length === 0 && towerCount === 0) || repairers.creeps.length < level) {
         var priority;
         var memory = { role: 'repairer' };
         if (repairers.length === 0)
@@ -134,12 +148,12 @@ module.exports.updateBase = function(base, actions, creepRequests, structureRequ
         requestUtils.add(creepRequests, priority, memory);
     }
 
-    /*if (healerCount < 1 && towerCount === 0) {
+    if (healerCount < 1) {
         var memory = { role: 'healer' };
         requestUtils.add(creepRequests, 0.88, memory);
-    }*/
+    }
 
-    if (roadBuilderWorkParts < level || (roadBuilderWorkParts < level * 2 && baseMemory.construction.roads.length > 0)) {
+    if (roadBuilderWorkParts === 0 || (roadBuilderWorkParts < level && baseMemory.construction.roads.length > 0)) {
         var priority;
         var memory = { role: 'builder_road' };
         if (roadBuilderWorkParts === 0)
@@ -174,4 +188,32 @@ module.exports.updateBase = function(base, actions, creepRequests, structureRequ
             priority = 0.64;
         requestUtils.add(creepRequests, priority, memory);
     }
+}
+
+function findTarget(pos, targetGroups) {
+    for (var i = 0; i < targetGroups.length; i++) {
+        var group = targetGroups[i];
+        var bestDistance = 9999;
+        var bestTarget = null;
+        for (var j = 0; j < group.length; j++) {
+            if (group[j]) {
+                var structure = Game.getObjectById(group[j]);
+                if (structure) {
+                    var targetPos = structure.pos;
+                    var distance;
+                    if (pos.roomName !== targetPos.roomName)
+                        distance = Game.map.getRoomLinearDistance(pos.roomName, targetPos.roomName) * 50;
+                    else
+                        distance = pos.getRangeTo(targetPos);
+                    if (distance < bestDistance) {
+                        bestDistance = distance;
+                        bestTarget = structure.id;
+                    }
+                }
+            }
+        } 
+        if (bestTarget)
+            return bestTarget;
+    }
+    return null;
 }
