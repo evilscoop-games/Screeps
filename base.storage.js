@@ -1,4 +1,5 @@
 "use strict";
+var listUtils = require("util.list");
 var requestUtils = require("util.requests");
 
 module.exports.updateGlobal = function(actions) {
@@ -51,4 +52,15 @@ module.exports.updateBase = function(base, actions, creepRequests, structureRequ
         else
             return structure.energy > 0;
     });
+
+    var droppedEnergy = [];
+    for (var i = 0; i < baseMemory.rooms.length; i++) {
+        var room = Game.rooms[baseMemory.rooms[i]];
+        if (room) {
+            var roomResources = room.find(FIND_DROPPED_ENERGY);
+            for (var j = 0; j < roomResources.length; j++)
+                listUtils.add(droppedEnergy, roomResources[j].id);
+        }
+    }
+    base.droppedEnergy = droppedEnergy;
 }

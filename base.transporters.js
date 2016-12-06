@@ -17,6 +17,7 @@ module.exports.updateBase = function(base, actions, creepRequests, structureRequ
     var coreRechargerCount = roles['recharger_core'].creeps.length;
     var rechargerCount = roles['recharger'].creeps.length;
     var upgraderCount = roles['upgrader'].creeps.length;
+    var scavengerCount = roles['scavenger'].creeps.length;
     var towerCount = baseMemory.structures[STRUCTURE_TOWER].length;
     var storageCount = baseMemory.structures[STRUCTURE_STORAGE].length;
     var containers = [];
@@ -89,4 +90,11 @@ module.exports.updateBase = function(base, actions, creepRequests, structureRequ
             priority = 0.79;
         requestUtils.add(creepRequests, priority, memory);
     } 
+
+    if (scavengerCount === 0 && base.droppedEnergy.length !== 0) {
+        var memory = {
+            role: 'scavenger',
+        };
+        requestUtils.add(creepRequests, 0.99, memory);
+    }
 }

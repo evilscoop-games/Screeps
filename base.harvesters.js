@@ -11,7 +11,6 @@ module.exports.updateBase = function(base, actions, creepRequests, structureRequ
     var simpleHarvesterCount = roles['harvester_simple'].creeps.length;
     var harvesters = roles['harvester'];
     var collectorCount = roles['collector'].creeps.length;
-    var scavengerCount = roles['scavenger'].creeps.length;
     var harvesterWorkPartCount = harvesters.parts.work;
 
     for (let i = 0; i < baseMemory.sources.length; i++) {
@@ -99,12 +98,5 @@ module.exports.updateBase = function(base, actions, creepRequests, structureRequ
                 }
             }
         }
-    }
-
-    if (scavengerCount < 1) {
-        var memory = {
-            role: 'scavenger',
-        };
-        requestUtils.add(creepRequests, 0.87, memory);
     }
 }

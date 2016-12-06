@@ -121,6 +121,25 @@ function findClosestStructureByRange(from, structures, filter) {
         return null;
 }
 module.exports.findClosestStructureByRange = findClosestStructureByRange;
+function findClosestByRange(from, objs, filter) {
+    var bestObj = null;
+    var bestDistance = 9999;
+    for (let key in objs) {
+        var obj = Game.getObjectById(objs[key]);
+        if (obj && (!filter || filter(obj))) {
+            var distance = getRangeDistanceTo(from, obj.pos);
+            if (distance < bestDistance) {
+                bestObj = obj;
+                bestDistance = distance;
+            }
+        }
+    }
+    if (bestObj)
+        return bestObj;
+    else
+        return null;
+}
+module.exports.findClosestByRange = findClosestByRange;
 
 function findAnyCreep(from, creeps, filter) {
     for (let key in creeps) {

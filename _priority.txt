@@ -7,6 +7,7 @@ Collector: Capped at 1 work part per 5 tiles of distance, half if a storage exis
 # Critical (Don't wait for energy when building)
 1.00 - Maintainer (maintainer = 0, TTL < 1500)
 0.99 - SimpleHarvester (harvesters < 3, collectors = 0)
+0.99 - Scavenger (scavengers = 0, resources > 0)
 0.90 - Core Recharger (storages > 1, recharger_core = 0)
 0.98 - Collector (source_collectors < source_harvesters)
 0.97 - Core Recharger (storages > 1, recharger_core < level - 1)
@@ -19,7 +20,6 @@ Collector: Capped at 1 work part per 5 tiles of distance, half if a storage exis
 
 # Base Development (Don't allow others to pull out of spawn/extensions)
 0.89 - Healer (healers = 0)
-0.88 - Scavenger (scavengers = 0)
 0.86 - Road Builder (road_builders = 0, road_sites > 0)
 0.85 - Structure Builder (structure_builders = 0, structure_sites > 0)
 0.84 - Defense Builder (defense_builders = 0, defense_sites > 0)

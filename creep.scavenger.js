@@ -21,13 +21,8 @@ module.exports.update = function(creep, memory, actions) {
     var coreSpawn = Game.spawns[baseMemory.spawns[0]];
 
     if(creep.carry.energy < creep.carryCapacity) {
-        var neededEnergy = creep.carryCapacity - creep.carry.energy;
-
-        var target;
-        var energy = Math.floor(neededEnergy / 50) * 50;
-        for (; !target && energy >= 0; energy -= 50)
-            target = findTarget(creep, energy);
-
+        var base = Game.bases[memory.base];
+        var target = mapUtils.findClosestByRange(creep.pos, base.droppedEnergy);
         if (target) {
             if (actions.pickup(creep, target, true))
                 return;
@@ -41,12 +36,4 @@ module.exports.update = function(creep, memory, actions) {
                 return;
         }
     }
-}
-
-function findTarget(creep, minEnergy) {
-    if (minEnergy === 0)
-        minEnergy = 25;
-    return creep.pos.findClosestByPath(FIND_DROPPED_ENERGY, { filter: (x) => {
-        return x.amount >= minEnergy;
-    }});
 }
