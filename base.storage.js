@@ -41,7 +41,7 @@ module.exports.updateBase = function(base, actions, creepRequests, structureRequ
             return structure.store.energy > 0;
         else
             return structure.energy > 0;
-    });    
+    });
     base.corePickups = _.filter(corePickups, x => {
         var structure = Game.structures[x];
         if (!structure)

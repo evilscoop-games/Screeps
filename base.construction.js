@@ -42,6 +42,8 @@ module.exports.updateGlobal = function(actions) {
             if (siteMemory.type !== STRUCTURE_CONTAINER) {
                 for (let i = 0; i < siteMemory.bases.length; i++) {
                     var baseMemory = Memory.bases[siteMemory.bases[i]];
+                    if (!baseMemory)
+                        continue;
                     
                     if (siteMemory.type === STRUCTURE_ROAD)
                         listUtils.remove(baseMemory.construction.roads, id);
@@ -53,18 +55,22 @@ module.exports.updateGlobal = function(actions) {
                     if (siteMemory.type !== STRUCTURE_ROAD &&
                             siteMemory.type !== STRUCTURE_WALL &&
                             siteMemory.type !== STRUCTURE_RAMPART) {
-                        var structures = mapUtils.deserializePos(siteMemory.pos).lookFor(LOOK_STRUCTURES);
-                        var success = false;
-                        for (let i = 0; i < structures.length; i++) {
-                            if (structures[i].structureType === siteMemory.type) {
-                                listUtils.add(baseMemory.structures[siteMemory.type], structures[i].id);
-                                Memory.structures[structures[i].id] = {};
-                                success = true;
-                                break;
+                        var pos = mapUtils.deserializePos(siteMemory.pos);
+                        var room = Game.rooms[pos.roomName];
+                        if (room) {
+                            var structures = pos.lookFor(LOOK_STRUCTURES);
+                            var success = false;
+                            for (let i = 0; i < structures.length; i++) {
+                                if (structures[i].structureType === siteMemory.type) {
+                                    listUtils.add(baseMemory.structures[siteMemory.type], structures[i].id);
+                                    Memory.structures[structures[i].id] = {};
+                                    success = true;
+                                    break;
+                                }
                             }
+                            if (success === false)
+                                recheckPlan(baseMemory); //Construction site destroyed or cancelled
                         }
-                        if (success === false)
-                            recheckPlan(baseMemory); //Construction site destroyed or cancelled
                     }
                 }
             }
@@ -131,8 +137,8 @@ module.exports.updateBase = function(base, actions, creepRequests, structureRequ
                         }
 
                         if (alreadyExists === true || success === true) {
+                            listUtils.add(baseMemory.plan.built[structureType], queuedStructures[i]);
                             listUtils.removeAt(queuedStructures, i);
-                            listUtils.add(baseMemory.plan.built[structureName], queuedStructures[i]);
                             if (success === true)
                                 break;
                         }
@@ -150,8 +156,8 @@ module.exports.updateBase = function(base, actions, creepRequests, structureRequ
             if (request === null)
                 break;
 
-            var structureName = request.data;
-            var queuedStructures = baseMemory.plan.queued[structureName];
+            var structureType = request.data;
+            var queuedStructures = baseMemory.plan.queued[structureType];
             if (queuedStructures) {
                 for (let i = 0; i < queuedStructures.length; i++) {
                     var pos = mapUtils.deserializePos(queuedStructures[i]);
@@ -161,7 +167,7 @@ module.exports.updateBase = function(base, actions, creepRequests, structureRequ
 
                         var structures = pos.lookFor(LOOK_STRUCTURES);
                         for (let j = 0; j < structures.length; j++) {
-                            if (structures[j].structureType === structureName) {
+                            if (structures[j].structureType === structureType) {
                                 alreadyExists = true;
                                 break;
                             }
@@ -169,15 +175,15 @@ module.exports.updateBase = function(base, actions, creepRequests, structureRequ
 
                         if (alreadyExists === false) {
                             var room = Game.rooms[pos.roomName];
-                            if (room && room.createConstructionSite(pos, structureName) === OK) {
-                                console.log(base.name + ": Creating " + structureName + " (" + request.priority + ")");
+                            if (room && room.createConstructionSite(pos, structureType) === OK) {
+                                console.log(base.name + ": Creating " + structureType + " (" + request.priority + ")");
                                 success = true;
                             }
                         }
 
                         if (alreadyExists === true || success === true) {
+                            listUtils.add(baseMemory.plan.built[structureType], queuedStructures[i]);
                             listUtils.removeAt(queuedStructures, i);
-                            listUtils.add(baseMemory.plan.built[structureName], queuedStructures[i]);
                             if (success === true)
                                 break;
                         }
@@ -215,10 +221,12 @@ module.exports.updateBase = function(base, actions, creepRequests, structureRequ
                         }
                     }
                 }
+                else
+                    isComplete = false;
             }
             if (isComplete) {
-                listUtils.removeAt(queuedRoads, 0);
                 listUtils.add(baseMemory.plan.built.road, path);
+                listUtils.removeAt(queuedRoads, 0);
             }
         }
     }

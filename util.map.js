@@ -153,6 +153,9 @@ module.exports.findDropoff = function(from, base, amount) {
     return null;
 }
 module.exports.findStorage = function(from, base, amount, allowSpawn) {
+    if (amount > 25)
+        amount = 25;
+
     var structure = findClosestStructureByRange(from, base.pickups, (x) => {
         if (x.store)
             return x.store.energy >= amount;

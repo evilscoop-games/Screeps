@@ -43,7 +43,7 @@ module.exports.addCoreRoom = function(base, room, roomMemory) {
         planRoadsBetween(roads, coreSpawn, source, roadCosts);
     }
     //Controller <-> Spawn
-    planRoadsBetween(roads, controller, coreSpawn, roadCosts);
+    planRoadsBetween(roads, coreSpawn, controller, roadCosts);
     //Local Minerals <-> Spawn
     for (let i = 0; i < roomMemory.minerals.length; i++) {
         var mineral = Game.getObjectById(roomMemory.minerals[i]);
@@ -159,7 +159,8 @@ module.exports.addExtensionRoom = function(base, room, roomMemory) {
         }
     }
     //Controller <-> Spawn
-    planRoadsBetween(roads, coreSpawn, controller, roadCosts);
+    if (controller)
+        planRoadsBetween(roads, coreSpawn, controller, roadCosts);
 
     //Dont build on roads
     for (let i = 0; i < roads.length; i++) { 
@@ -193,17 +194,17 @@ module.exports.addExtensionRoom = function(base, room, roomMemory) {
 }
 
 function planRoadsBetween(roads, start, end, roadCosts) {
-    if (roads.pos)
-        roads = roads.pos;
+    if (start.pos)
+        start = start.pos;
     if (end.pos)
         end = end.pos;
-    var path = PathFinder.search(start.pos, { 
+    var path = PathFinder.search(start, { 
         pos: end, 
         range: 1 
     }, { 
         roomCallback: x => getRoomCosts(roadCosts, x),
-        plainCost: 3, 
-        swampCost: 3
+        plainCost: 2, 
+        swampCost: 2
     });
     if (!path.incomplete) {
         for (let i = 0; i < path.path.length; i++)
@@ -329,7 +330,7 @@ function getRoomCosts(roadCosts, roomName) {
     var costs = roadCosts[roomName];
     if (!costs) {
         costs = new PathFinder.CostMatrix();
-        costs[roomName] = costs;
+        roadCosts[roomName] = costs;
     }
     return costs;
 }
@@ -341,8 +342,11 @@ function setImpassable(roadCosts, pos) {
     var costs = getRoomCosts(roadCosts, pos.roomName);
     costs.set(pos.x, pos.y, 255);
 }
-function setBadPos(badPos, pos) {
-    badPos[pos.x + ',' + pos.y] = true;
+function setBadPos(structurePos, pos) {
+    if (_.isArray(pos))
+        structurePos[pos[0] * 100 + pos[1]] = true;
+    else
+        structurePos[pos.x * 100 + pos.y] = true;
 }
 
 function calculateRoadCosts(baseMemory) {
@@ -352,24 +356,26 @@ function calculateRoadCosts(baseMemory) {
     return roadCosts;
 }
 function calculatePlanRoadCost(baseMemory, roadCosts, plan) {
-    for (let structureType in plan.queued) {
+    for (let structureType in plan) {
         if (structureType === STRUCTURE_ROAD) {
             var roads = plan[STRUCTURE_ROAD]
             for (let i = 0; i < roads.length; i++) {
                 var road = roads[i];
                 for (let j = 0; j < road.length; j++) {
                     var pos = mapUtils.deserializePos(road[j]);
-                    var costs = getRoomCosts(baseMemory, pos.roomName);
+                    var costs = getRoomCosts(roadCosts, pos.roomName);
                     costs.set(pos.x, pos.y, 1);
                 }
             }
         }
         else {
-            var structures = plan[structureType];
-            for (let i = 0; i < road.length; i++) {
-                var pos = mapUtils.deserializePos(structures[i]);
-                var costs = getRoomCosts(baseMemory, pos.roomName);
-                costs.set(pos.x, pos.y, 1);
+            if (structureType !== STRUCTURE_RAMPART) {
+                var structures = plan[structureType];
+                for (let i = 0; i < structures.length; i++) {
+                    var pos = mapUtils.deserializePos(structures[i]);
+                    var costs = getRoomCosts(roadCosts, pos.roomName);
+                    costs.set(pos.x, pos.y, 255);
+                }
             }
         }
     }
@@ -387,10 +393,10 @@ function getBuildPosition(room, center, minRadius, maxRadius, roadCosts, structu
             var x = Math.round(center.x + xOffset);
             var y = Math.round(center.y + yOffset);
 
-            for (let j = 0; j < 5; j++) {
-                if (x > 2 && y > 2 && x < 47 && y < 47) {
+            for (let j = 0; j < 25; j++) {
+                if (x > 4 && y > 4 && x < 45 && y < 45) {
                     var cost = costs.get(x, y);
-                    if (cost !== 1 && cost !== 255 && !structurePos[x + ',' + y]) {
+                    if (cost !== 1 && cost !== 255 && structurePos[x * 100 + y] !== true) {
                         var results = room.lookAt(x, y);
                         var valid = true;
                         for (let k = 0; k < results.length; k++) {
@@ -403,6 +409,7 @@ function getBuildPosition(room, center, minRadius, maxRadius, roadCosts, structu
                         if (valid) {
                             var pos = new RoomPosition(x, y, room.name);
                             setBadPos(structurePos, pos);
+                            setImpassable(roadCosts, pos);
                             return pos;
                         }
                     }
@@ -410,5 +417,5 @@ function getBuildPosition(room, center, minRadius, maxRadius, roadCosts, structu
             }
         }
     }
-    return null;
+    return undefined;
 }

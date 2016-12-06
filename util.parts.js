@@ -16,7 +16,7 @@ module.exports.get = function(initialParts, repeatParts, maxCost) {
         //Body cannot have more than 50 parts
         if (body.length > 50) {
             body = body.slice(0, 50);
-            cost = getCost(nextBody);
+            currentCost = getCost(body);
             nextCost = 0;
         }
         else if (body.length + repeatParts.length > 50) {

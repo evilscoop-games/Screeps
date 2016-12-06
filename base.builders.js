@@ -97,8 +97,9 @@ module.exports.updateBase = function(base, actions, creepRequests, structureRequ
 
     //Assign targets to builders
     var targetGroups = [
-        [structureTarget, roadTarget, defenseTarget], 
+        [structureTarget, roadTarget], 
         criticalDefenseRepairTargets, 
+        [defenseTarget], 
         structureRepairTargets, 
         roadRepairTargets,
         defenseRepairTargets 
@@ -112,8 +113,9 @@ module.exports.updateBase = function(base, actions, creepRequests, structureRequ
     }
     
     var targetGroups = [
-        [roadTarget, structureTarget, defenseTarget], 
+        [roadTarget, structureTarget], 
         criticalDefenseRepairTargets, 
+        [defenseTarget], 
         roadRepairTargets,
         structureRepairTargets, 
         defenseRepairTargets

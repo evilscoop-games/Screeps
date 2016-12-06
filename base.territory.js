@@ -22,7 +22,7 @@ module.exports.updateBase = function(base, actions, creepRequests, structureRequ
 
             if (roomMemory && !listUtils.contains(baseMemory.rooms, roomName)) {
                 var room = Game.rooms[roomName];
-                if (room && !roomMemory.owner) {
+                if (roomMemory.controller && !roomMemory.owner) {
                     if (room)
                         claimRoom(base, room);
                     else

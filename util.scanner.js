@@ -6,6 +6,10 @@ var memoryUtils = require('util.memory');
 module.exports.scanRoom = function(room) {
     var roomMemory = memoryUtils.createRoom();
 
+    //Controller
+    if (room.controller)
+        roomMemory.controller = room.controller.id;
+
     //Add sources
     var sources = room.find(FIND_SOURCES);
     for (let i = 0; i < sources.length; i++) {

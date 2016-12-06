@@ -119,7 +119,7 @@ function moveStep(creep, pathMemory) {
     creep.move(dir);
 }
 
-module.exports.flee = function(creep, target, distance) {
+function flee(creep, target, distance) {
     Game.debug.sayAction(creep, 'flee');
     var path = PathFinder.search(creep.pos, {
         pos: target.pos, 
@@ -131,6 +131,7 @@ module.exports.flee = function(creep, target, distance) {
     creep.moveByPath(path.path);
     return true; //Success
 }
+module.exports.flee = flee;
 
 module.exports.pickup = function(creep, target, allowMove) {
     Game.debug.sayAction(creep, 'pickup');
@@ -334,8 +335,13 @@ function continueBuild(creep, action) {
     return doBuild(creep, target, true);
 }
 function doBuild(creep, target, allowMove) {
+    //Make sure we're not standing on the target...
+    if (target && creep.pos.isEqualTo(target.pos)) {
+        flee(creep, target, 1);
+        return;
+    }
     var result = creep.build(target);
-
+    
     if (result === OK)
         return false; //Continue
     else if (allowMove && result === ERR_NOT_IN_RANGE) {
