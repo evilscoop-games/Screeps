@@ -12,7 +12,7 @@ module.exports.pop = function(arr) {
         return null;
     
     var bestIndex = null;
-    for (var i = 0; i < arr.length; i++) {
+    for (let i = 0; i < arr.length; i++) {
         var request = arr[i];
         if (bestIndex === null || request.priority > arr[bestIndex].priority)
             bestIndex = i;

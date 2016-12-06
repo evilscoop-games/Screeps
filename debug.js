@@ -42,9 +42,9 @@ module.exports.endLoop = function() {
     if (Memory.debug.logNext === true) {
         times.init = times.init.toFixed(2);
         times.global = times.global.toFixed(2);
-        for (var name in times.bases)
+        for (let name in times.bases)
             times.bases[name] = times.bases[name].toFixed(2);
-        for (var name in times.creeps)
+        for (let name in times.creeps)
             times.creeps[name] = times.creeps[name].toFixed(2);
         console.log(JSON.stringify(times));
         Memory.debug.logNext = false;
@@ -82,17 +82,17 @@ module.exports.stop = function() {
 //Respawn
 module.exports.respawn = function(pass) {
     if (pass === "confirm") {
-        for (var key in Memory)
+        for (let key in Memory)
             delete Memory[key];
-        for (var name in Game.creeps)
+        for (let name in Game.creeps)
             Game.creeps[name].suicide();
-        for (var name in Game.structures) {
+        for (let name in Game.structures) {
             var type = Game.structures[name].structureType;
             if (type !== STRUCTURE_SPAWN &&
                     type !== STRUCTURE_RAMPART)
                 Game.structures[name].destroy();
         }
-        for (var name in Game.constructionSites)
+        for (let name in Game.constructionSites)
             Game.constructionSites[name].remove();
         return "Respawn successful";
     }
@@ -106,7 +106,12 @@ module.exports.recheckPlan = function(name) {
     if (!baseMemory)
         return "Unknown base"
         
-    Game.baseManager.recheckPlan(baseMemory);
+    //Reset every structure to queued
+    for (let key in baseMemory.plan.built) {
+        baseMemory.plan.queued[key] = baseMemory.plan.queued[key].concat(baseMemory.plan.built[key]);
+        baseMemory.plan.built[key] = [];
+    }
+
     return "Recheck started";
 }
 module.exports.reclaimRoom = function(baseName, roomName) {
@@ -129,9 +134,9 @@ module.exports.reclaimRoom = function(baseName, roomName) {
     var currentRamparts = Game.rooms[baseName].find(FIND_STRUCTURES, { filter: x => x.structureType === STRUCTURE_RAMPART });
 
     var mapUtils = require('util.map');
-    for (var i = 0; i < currentWalls.length; i++)
+    for (let i = 0; i < currentWalls.length; i++)
         walls.push(mapUtils.serializePos(currentWalls[i].pos));
-    for (var i = 0; i < currentRamparts.length; i++)
+    for (let i = 0; i < currentRamparts.length; i++)
         ramparts.push(mapUtils.serializePos(currentRamparts[i].pos));
 
     baseMemory.plan.built[STRUCTURE_WALL] = walls;
@@ -147,28 +152,59 @@ module.exports.convertPlan = function(name) {
     var mapUtils = require('util.map');
     var queued = baseMemory.plan.queued;
     var built = baseMemory.plan.built;
-    for (var structureType in queued) {
+    for (let structureType in queued) {
         if (structureType !== STRUCTURE_ROAD) {
             var s1 = queued[structureType];
-            for (var i = 0; i < s1.length; i++)
+            for (let i = 0; i < s1.length; i++)
                 s1[i] = mapUtils.serializePos(mapUtils.deserializePos(s1[i]));
             var s2 = built[structureType];
-            for (var i = 0; i < s2.length; i++)
+            for (let i = 0; i < s2.length; i++)
                 s2[i] = mapUtils.serializePos(mapUtils.deserializePos(s2[i]));
         }
         else {
             var s1 = queued[structureType];
-            for (var i = 0; i < s1.length; i++) {
+            for (let i = 0; i < s1.length; i++) {
                 var road = s1[i];
-                for (var i2 = 0; i2 < road.length; i2++)
+                for (let i2 = 0; i2 < road.length; i2++)
                     road[i2] = mapUtils.serializePos(mapUtils.deserializePos(road[i2]));
             }
             var s2 = built[structureType];
-            for (var i = 0; i < s2.length; i++) {
+            for (let i = 0; i < s2.length; i++) {
                 var road = s2[i];
-                for (var i2 = 0; i2 < road.length; i2++)
+                for (let i2 = 0; i2 < road.length; i2++)
                     road[i2] = mapUtils.serializePos(mapUtils.deserializePos(road[i2]));
             }
         }
     }
 }*/
+module.exports.recalcParts = function(name) {
+    var baseMemory = Memory.bases[name];
+    if (!baseMemory)
+        return "Unknown base"
+
+    for (let role in baseMemory.roles) {
+        var parts = {
+            move: 0,
+            work: 0,
+            carry: 0,
+            attack: 0,
+            ranged_attack: 0,
+            tough: 0,
+            heal: 0,
+            claim: 0
+        }
+        var creeps = baseMemory.roles[role].creeps;
+        for (let i = 0; i < creeps.length; i++) {
+            var creepName = creeps[i];
+            var creepMemory = Memory.creeps[creepName];
+            var creep = Game.creeps[creepName];
+            if (creep) {
+                var body = Game.creeps[creepName].body;
+                for (let j = 0; j < body.length; j++)
+                    parts[body[j].type]++;
+            }
+        }
+        baseMemory.roles[role].parts = parts;
+    }
+    return "Done";
+}

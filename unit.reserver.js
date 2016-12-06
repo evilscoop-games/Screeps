@@ -2,7 +2,6 @@
 var listUtils = require('util.list');
 var memoryUtils = require('util.memory');
 var partUtils = require('util.parts');
-var scanner = require('util.scanner');
 
 const CORE_PARTS = [MOVE,MOVE,CLAIM,CLAIM];
 const REPEAT_PARTS = [MOVE,CLAIM];

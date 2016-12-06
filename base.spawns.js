@@ -9,12 +9,12 @@ module.exports.updateBase = function(base, actions, creepRequests, structureRequ
     var baseMemory = base.memory;
 
     //Declump around spawns        
-    for (var i = 0; i < baseMemory.spawns.length; i++) {
+    for (let i = 0; i < baseMemory.spawns.length; i++) {
         var spawn = Game.spawns[baseMemory.spawns[i]];
         if (spawn) {
             var pos = spawn.pos;
             var targets = spawn.room.lookForAtArea(LOOK_CREEPS, pos.y - 2, pos.x - 2, pos.y + 2, pos.x + 2, true);
-            for (var j = 0; j < targets.length; j++) {
+            for (let j = 0; j < targets.length; j++) {
                 if (!actions.hasAnyAction(targets[j].creep))
                     actions.flee(targets[j].creep, spawn, 3, true);
             }
@@ -24,7 +24,7 @@ module.exports.updateBase = function(base, actions, creepRequests, structureRequ
     //Spawn creeps
     baseMemory.construction.requestedCreepPriority = 0.0;
 
-    for (var i = 0; i < baseMemory.spawns.length; i++) {
+    for (let i = 0; i < baseMemory.spawns.length; i++) {
         var spawnName = baseMemory.spawns[i];
         var spawn = Game.spawns[spawnName];
         if (!spawn.spawning) {
@@ -35,7 +35,7 @@ module.exports.updateBase = function(base, actions, creepRequests, structureRequ
             }
             var queue = memory.queue;
             
-            for (var j = 0; j < queue.length; j++) {
+            for (let j = 0; j < queue.length; j++) {
                 var creepName = queue[j];
                 var creep = Game.creeps[creepName];
                 if (!creep) {
@@ -89,10 +89,10 @@ module.exports.updateBase = function(base, actions, creepRequests, structureRequ
                             memory.upgradeCost = bodyInfo.upgradeCost;*/
 
                         memory.base = base.name;
-                        memory.priority = request.priority;
+                        //memory.priority = request.priority;
                         
                         var parts = { };
-                        for (var i = 0; i < bodyInfo.body.length; i++) {
+                        for (let i = 0; i < bodyInfo.body.length; i++) {
                             var part = bodyInfo.body[i];
                             if (!parts[part])
                                 parts[part] = 1;
@@ -104,14 +104,14 @@ module.exports.updateBase = function(base, actions, creepRequests, structureRequ
                         var name = spawn.createCreep(bodyInfo.body, null, memory);
                         if (_.isString(name)) {
                             if (!memory.military) {
-                                for (var key in parts)
+                                for (let key in parts)
                                     baseMemory.roles[memory.role].parts[key] += parts[key];
                                 var creepNames = baseMemory.roles[memory.role].creeps;
                                 listUtils.add(creepNames, name);
                                 manager.onCreate(name, memory);
                             }
                             else {
-                                for (var key in parts)
+                                for (let key in parts)
                                     Memory.military.roles[memory.role].parts[key] += parts[key];
                                 var creepNames = Memory.military.roles[memory.role].creeps;
                                 listUtils.add(creepNames, name);

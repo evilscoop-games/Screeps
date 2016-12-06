@@ -24,7 +24,7 @@ module.exports.getRangeDistanceTo = getRangeDistanceTo;
 function findClosestCreepByPath(from, creeps, filter) {
     var bestCreep = null;
     var bestDistance = 9999;
-    for (var key in creeps) {
+    for (let key in creeps) {
         var creep = Game.creeps[creeps[key]];
         if (creep && (filter == undefined || filter(creep))) {
             var distance = getPathDistanceTo(from, creep.pos);
@@ -43,7 +43,7 @@ module.exports.findClosestCreepByPath = findClosestCreepByPath;
 function findClosestHostileByPath(from, hostiles, filter) {
     var bestHostile = null;
     var bestDistance = 9999;
-    for (var key in hostiles) {
+    for (let key in hostiles) {
         var hostile = Game.getObjectById(hostiles[key]);
         if (hostile && (filter == undefined || filter(hostile))) {
             var distance = getPathDistanceTo(from, hostile.pos);
@@ -62,7 +62,7 @@ module.exports.findClosestHostileByPath = findClosestHostileByPath;
 function findClosestStructureByPath(from, structures, filter) {
     var bestStructure = null;
     var bestDistance = 9999;
-    for (var key in structures) {
+    for (let key in structures) {
         var structure = Game.structures[structures[key]];
         if (!structure)
             structure = Game.getObjectById(structures[key]);
@@ -84,7 +84,7 @@ module.exports.findClosestStructureByPath = findClosestStructureByPath;
 function findClosestCreepByRange(from, creeps, filter) {
     var bestCreep = null;
     var bestDistance = 9999;
-    for (var key in creeps) {
+    for (let key in creeps) {
         var creep = Game.creeps[creeps[key]];
         if (creep && (!filter || filter(creep))) {
             var distance = getRangeDistanceTo(from, creep.pos);
@@ -103,7 +103,7 @@ module.exports.findClosestCreepByRange = findClosestCreepByRange;
 function findClosestStructureByRange(from, structures, filter) {
     var bestStructure = null;
     var bestDistance = 9999;
-    for (var key in structures) {
+    for (let key in structures) {
         var structure = Game.structures[structures[key]];
         if (!structure)
             structure = Game.getObjectById(structures[key]);
@@ -123,7 +123,7 @@ function findClosestStructureByRange(from, structures, filter) {
 module.exports.findClosestStructureByRange = findClosestStructureByRange;
 
 function findAnyCreep(from, creeps, filter) {
-    for (var key in creeps) {
+    for (let key in creeps) {
         var creep = Game.creeps[creeps[key]];
         if (!filter || filter(creep))
             return creep;
@@ -132,7 +132,7 @@ function findAnyCreep(from, creeps, filter) {
 }
 module.exports.findAnyCreep = findAnyCreep;
 function findAnyStructure(from, structures, filter) {
-    for (var key in structures) {
+    for (let key in structures) {
         var structure = Game.structures[structures[key]];
         if (!filter || filter(structure))
             return structure;
@@ -203,7 +203,7 @@ module.exports.deserializePos = function(pos) {
 }
 module.exports.serializePath = function(path) {
     var results = [];
-    for (var i = 0; i < path.length; i++) {
+    for (let i = 0; i < path.length; i++) {
         var pos = path[i];
         listUtils.add(results, serializePos(pos));
     }
@@ -211,7 +211,7 @@ module.exports.serializePath = function(path) {
 }
 module.exports.serializeRelativePath = function(path) {
     var result = '';
-    for (var i = 0; i < path.length; i++)
+    for (let i = 0; i < path.length; i++)
         result = result + path[i].direction;
     return result;
 }
@@ -241,6 +241,18 @@ module.exports.findSpacesAround = function(pos) {
     }
     return result;
 }
+module.exports.findCardinalSpacesAround = function(pos) {
+    var result = [];
+    if (pos.y !== 0 && Game.map.getTerrainAt(pos.x, pos.y - 1, pos.roomName) !== "wall")
+        listUtils.add(result, [pos.x, pos.y - 1]);
+    if (pos.x !== 0 && Game.map.getTerrainAt(pos.x - 1, pos.y, pos.roomName) !== "wall")
+        listUtils.add(result, [pos.x - 1, pos.y]);
+    if (pos.x !== 49 && Game.map.getTerrainAt(pos.x + 1, pos.y, pos.roomName) !== "wall")
+        listUtils.add(result, [pos.x + 1, pos.y]);
+    if (pos.y !== 49 && Game.map.getTerrainAt(pos.x, pos.y + 1, pos.roomName) !== "wall")
+        listUtils.add(result, [pos.x, pos.y + 1]);
+    return result;
+}
 module.exports.findContainerPos = function(center, openSpots) {
     var minX = center.x - 2;
     var minY = center.y - 2;
@@ -261,7 +273,7 @@ module.exports.findContainerPos = function(center, openSpots) {
 
     //Top
     if (minY === center.y - 2) {
-        for (var x = minX; x <= maxX; x++) {
+        for (let x = minX; x <= maxX; x++) {
             if (Game.map.getTerrainAt(x, minY, center.roomName) !== "wall") {
                 var count = countPositionsAround(x, minY, openSpots);
                 if (count > bestCount) {
@@ -273,7 +285,7 @@ module.exports.findContainerPos = function(center, openSpots) {
     }    
     //Bottom
     if (maxY === center.y + 2) {
-        for (var x = minX; x <= maxX; x++) {
+        for (let x = minX; x <= maxX; x++) {
             if (Game.map.getTerrainAt(x, maxY, center.roomName) !== "wall") {
                 var count = countPositionsAround(x, maxY, openSpots);
                 if (count > bestCount){
@@ -285,7 +297,7 @@ module.exports.findContainerPos = function(center, openSpots) {
     }
     //Left
     if (minX === center.x - 2) {
-        for (var y = minY; y <= maxY; y++) {
+        for (let y = minY; y <= maxY; y++) {
             if (Game.map.getTerrainAt(minX, y, center.roomName) !== "wall") {
                 var count = countPositionsAround(minX, y, openSpots);
                 if (count > bestCount){
@@ -297,7 +309,7 @@ module.exports.findContainerPos = function(center, openSpots) {
     }    
     //Right
     if (maxX === center.x + 2) {
-        for (var y = minY; y <= maxY; y++) {
+        for (let y = minY; y <= maxY; y++) {
             if (Game.map.getTerrainAt(maxX, y, center.roomName) !== "wall") {
                 var count = countPositionsAround(maxX, y, openSpots);
                 if (count > bestCount){
@@ -333,7 +345,7 @@ function countPositionsAround(x, y, openSpots) {
 }
 
 function isOpen(x, y, openSpots) {
-    for (var i = 0; i < openSpots.length; i++) {
+    for (let i = 0; i < openSpots.length; i++) {
         var spot = openSpots[i];
         if (spot[0] === x && spot[1] === y)
             return true;

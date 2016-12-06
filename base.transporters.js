@@ -21,21 +21,24 @@ module.exports.updateBase = function(base, actions, creepRequests, structureRequ
     var storageCount = baseMemory.structures[STRUCTURE_STORAGE].length;
     var containers = [];
     
-    var totalDistance = 0;
-    for (var i = 0; i < baseMemory.sources.length; i++) {
+    var maxCollectorPartCount = 0;
+    for (let i = 0; i < baseMemory.sources.length; i++) {
         var sourceMemory = Memory.sources[baseMemory.sources[i]];
         var sourceCollectors = sourceMemory.collectors;
-        if (sourceMemory.container.ready) {
-            totalDistance += sourceMemory.distance * 2; //There and back
+        if (sourceMemory.container.id) {
+            var distance = sourceMemory.distance * 2; //There and back
             var carry = 0;
-            for (var j = 0; j < sourceCollectors.length; j++)
+            for (let j = 0; j < sourceCollectors.length; j++)
                 carry += Memory.creeps[sourceCollectors[j]].parts.carry;
-            if (sourceMemory.container.amount > 50 * carry)
+            var maxCarry = Math.min(60, Math.ceil(distance / 10));
+            maxCollectorPartCount += maxCarry;
+            if (sourceMemory.container.amount > 50 * carry && carry < maxCarry)
                 listUtils.add(containers, baseMemory.sources[i]);
         }
     }
-    var maxCollectorPartCount = Math.ceil(totalDistance / 5);
 
+    if (base.dropoffs.length === 0)
+        maxCollectorPartCount /= 2; //If we have nowhere to put energy, dont spawn as many collectors
     if (collectorCarryParts < maxCollectorPartCount) {
         var priority;
         var memory = { role: 'collector' };
@@ -46,13 +49,13 @@ module.exports.updateBase = function(base, actions, creepRequests, structureRequ
         requestUtils.add(creepRequests, priority, memory);
     }
 
-    for (var i = 0; i < collectors.creeps.length && containers.length !== 0; i++) {
+    for (let i = 0; i < collectors.creeps.length && containers.length !== 0; i++) {
         var name = collectors.creeps[i];
         var creepMemory = Memory.creeps[name];
         if (!creepMemory.target && containers.length > 0) {
             var bestSource = Memory.sources[containers[0]];
             var bestIndex = 0;
-            for (var j = 1; j < containers.length; j++) {
+            for (let j = 1; j < containers.length; j++) {
                 var sourceMemory = Memory.sources[containers[j]];
                 if (sourceMemory.container.amount > bestSource.container.amount) {
                     bestSource = sourceMemory;

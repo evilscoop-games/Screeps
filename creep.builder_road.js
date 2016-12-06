@@ -2,10 +2,11 @@
 var mapUtils = require('util.map');
 var partUtils = require('util.parts');
 
-const CORE_PARTS = [WORK, CARRY, MOVE, MOVE]; //250
+const CORE_PARTS = [WORK, CARRY, CARRY, MOVE]; //300
 const REPEAT_PARTS = [WORK, CARRY, CARRY, CARRY, MOVE, MOVE]; //350
 
 module.exports.getBodyInfo = function(energy) {
+    //Max size has 2 work and carries 200
     return partUtils.get(CORE_PARTS, REPEAT_PARTS, Math.min(600, energy));
 }
 

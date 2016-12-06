@@ -15,7 +15,7 @@ module.exports.updateBase = function(base, actions, creepRequests, structureRequ
     var healer = Memory.military.roles.healer;
     var military = melee.creeps.concat(ranged.creeps).concat(healer.creeps);
 
-    for (var i = 0; i < baseMemory.rooms.length; i++) {
+    for (let i = 0; i < baseMemory.rooms.length; i++) {
         var roomName = baseMemory.rooms[i];
         var roomMemory = Memory.rooms[roomName];
 
@@ -23,7 +23,7 @@ module.exports.updateBase = function(base, actions, creepRequests, structureRequ
             listUtils.add(threatRooms, roomName);
 
         if (roomMemory.threatLevel === 0) {
-            for (var j = 0; j < military.length; j++) {
+            for (let j = 0; j < military.length; j++) {
                 var creepMemory = Memory.creeps[military[j]];
                 if (creepMemory.room === roomName)
                     creepMemory.room = null;
@@ -46,12 +46,19 @@ module.exports.updateBase = function(base, actions, creepRequests, structureRequ
         console.log('Threat alert! (' + baseMemory.defenseLevel + ' vs ' + baseMemory.threatLevel + ')');
         requestUtils.add(creepRequests, 0.95, memory);
     }
-    else if (baseMemory.defenseLevel < 2500 * level)
-        requestUtils.add(creepRequests, 0.79, memory);
+    else if (baseMemory.defenseLevel < 2500 * (level - 1)) {
+        var priority;
+        //Dont need as many defenders if our only room is in safe mode
+        if (baseMemory.rooms.length !== 1 && !Game.rooms[base.name].controller.safeMode)
+            priority = 0.79;
+        else
+            priority = 0.49;
+        requestUtils.add(creepRequests, priority, memory);
+    }
 
     //Redirect current units
     if (threatRooms.length > 0) {
-        for (var j = 0; j < military.length; j++) {
+        for (let j = 0; j < military.length; j++) {
             var creepMemory = Memory.creeps[military[j]];
             if (!creepMemory.room && !creepMemory.squad && !creepMemory.special) { //Is not an attacker or special unit, and not already assigned to a room
                 creepMemory.room = threatRooms[0];

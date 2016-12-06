@@ -44,7 +44,7 @@ module.exports.getPowerLevel = function(creep) {
 
 function getCost(body) {
     var cost = 0;
-    for (var i = 0; i < body.length; i++) {
+    for (let i = 0; i < body.length; i++) {
         if (body[i].type)
             cost += BODYPART_COST[body[i].type];
         else

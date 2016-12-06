@@ -7,6 +7,7 @@ const CORE_PARTS = [WORK, WORK, CARRY, MOVE]; //300
 const REPEAT_PARTS = [WORK, MOVE]; //150
 
 module.exports.getBodyInfo = function(energy) {
+    //Max size has 6 work
     return partUtils.get(CORE_PARTS, REPEAT_PARTS, Math.min(energy, 900));
 }
 

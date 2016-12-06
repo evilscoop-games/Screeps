@@ -56,7 +56,7 @@ function findTarget(creep, neededEnergy) {
     if (neededEnergy === 0)
         neededEnergy = 25;
 
-    for (var energy = neededEnergy; energy >= 0; energy -= 50) {
+    for (let energy = neededEnergy; energy >= 0; energy -= 50) {
         var targetStructure = creep.pos.findClosestByPath(FIND_MY_STRUCTURES, { filter: (x) => {
             var type = x.structureType;
             return (type === STRUCTURE_TOWER) && 
@@ -75,7 +75,7 @@ function findTarget(creep, neededEnergy) {
             return targetCreep;
     }
     
-    for (var energy = neededEnergy; energy >= 0; energy -= 50) {
+    for (let energy = neededEnergy; energy >= 0; energy -= 50) {
         if (baseMemory.structures[STRUCTURE_STORAGE].length !== 0) {
             var targetStructure = creep.pos.findClosestByPath(FIND_MY_STRUCTURES, { filter: (x) => {
                 var type = x.structureType;

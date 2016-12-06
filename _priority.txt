@@ -1,3 +1,7 @@
+--- Per base rules ---
+Harvesters: Capped at 42 total work parts, 6 work parts each, 6 work parts per source
+Collector: Capped at 1 work part per 5 tiles of distance, half if a storage exists with past 50% capacity, 10 carry parts each
+
 -- Creeps ---
 
 # Critical (Don't wait for energy when building)
@@ -14,12 +18,12 @@
 0.90 - Reserver (unreserved adjacents)
 
 # Base Development (Don't allow others to pull out of spawn/extensions)
-0.89 - Repairer (repairers = 0, towerCount = 0)
-0.88 - Healer (healers = 0)
-0.87 - Scavenger (scavengers = 0)
+0.89 - Healer (healers = 0)
+0.88 - Scavenger (scavengers = 0)
 0.86 - Road Builder (road_builders = 0, road_sites > 0)
-0.84 - Structure Builder (structure_builders = 0, structure_sites > 0)
-0.82 - Defense Builder (defense_builders = 0, defense_sites > 0)
+0.85 - Structure Builder (structure_builders = 0, structure_sites > 0)
+0.84 - Defense Builder (defense_builders = 0, defense_sites > 0)
+0.82 - Repairer (repairers = 0, towerCount = 0)
 0.81 - Upgrader (upgraders = 0)
 0.80 - Harvester (harvesters < max)
 
@@ -29,15 +33,18 @@
 0.78 - Collector (source_collectors < max_source_collectors)
 0.77 - Recharger (rechargers < max)
 0.76 - Road Builder (road_builders < 2, road_sites > 0)
-0.74 - Structure Builder (structure_builders < 2, structure_sites > 0)
-0.72 - Defense Builder (defense_builders < 2, defense_sites > 0)
+0.75 - Structure Builder (structure_builders < 2, structure_sites > 0)
+0.74 - Defense Builder (defense_builders < 2, defense_sites > 0)
 
 #Excess Energy
-0.68 - Road Builder (road_builders < 4, road_sites > 0)
-0.66 - Structure Builder (structure_builders < 4, structure_sites > 0)
+0.66 - Road Builder (road_builders < 4, road_sites > 0)
+0.65 - Structure Builder (structure_builders < 4, structure_sites > 0)
 0.64 - Defense Builder (defense_builders < 4, defense_sites > 0)
 - 0.62 - Repairer (repairers < 2)
 0.60 - Upgrader (upgraders < 3)
+
+#Other
+0.49 - Defenders (safe mode)
 
 --- Structures ---
 

@@ -16,7 +16,7 @@ module.exports.updateBase = function(base, actions, creepRequests, structureRequ
     
     //Only upgrade once we have built all structures for that level
     var upgradeNeeded = true;
-    for (var structureType in CONTROLLER_STRUCTURES) {
+    for (let structureType in CONTROLLER_STRUCTURES) {
         if (structureType != STRUCTURE_CONTAINER &&
                 structureType != STRUCTURE_ROAD &&
                 structureType != STRUCTURE_RAMPART &&
@@ -39,18 +39,16 @@ module.exports.updateBase = function(base, actions, creepRequests, structureRequ
     }
     else {
         //Destroy existing maintainers
-        for (var i = 0; i < maintainers.creeps.length; i++) {
+        for (let i = 0; i < maintainers.creeps.length; i++) {
             var creep = Game.creeps[maintainers.creeps[i]];
             actions.recycle(creep, coreSpawn, true);
         }
     }
     
     //Do we need an upgrader?
-    var maxUpgraderWorkParts;
-    if (upgradeNeeded)
-        maxUpgraderWorkParts = level * level;
-    else
-        maxUpgraderWorkParts = 1;
+    var maxUpgraderWorkParts = level * level;
+    if (upgradeNeeded === false)
+        maxUpgraderWorkParts /= 2;
 
     if (upgraderWorkParts < maxUpgraderWorkParts) {
         var memory = { role: 'upgrader', target: controller.id };

@@ -7,14 +7,17 @@ module.exports.updateGlobal = function(actions) {
 module.exports.updateBase = function(base, actions, creepRequests, structureRequests, defenseRequests) {
     var baseMemory = base.memory;
     
-    var dropoffs = baseMemory.structures[STRUCTURE_SPAWN]
-        .concat(baseMemory.structures[STRUCTURE_EXTENSION]);
-        //.concat(baseMemory.structures[STRUCTURE_TOWER]);
-    if (baseMemory.roles.recharger.creeps.length !== 0) {
+    var dropoffs = [];
+    var hasStorage = false;
+    if (baseMemory.roles.recharger_core.creeps.length !== 0) {
         var storages = baseMemory.structures[STRUCTURE_STORAGE];
+        hasStorage = true;
         storages = _.filter(storages, x => Game.structures[x].store.energy < 500000); //Limit energy to 50% of a storage
         dropoffs = dropoffs.concat(storages);
     }
+    dropoffs = dropoffs.concat(baseMemory.structures[STRUCTURE_SPAWN]);
+    if (hasStorage === false) //Don't crowd around extensions
+        dropoffs = dropoffs.concat(baseMemory.structures[STRUCTURE_EXTENSION]);
 
     base.dropoffs = _.filter(dropoffs, x => {
         var structure = Game.structures[x];

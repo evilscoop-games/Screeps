@@ -7,7 +7,7 @@ const STATE_BUILDING = 'building';
 const STATE_ATTACKING = 'attacking';
 
 module.exports.updateGlobal = function(actions) {
-    for (var flagName in Game.flags) {
+    for (let flagName in Game.flags) {
         var flag = Game.flags[flagName];
         if (flag.color === COLOR_RED) {
             var flagMemory = flag.memory;
@@ -15,7 +15,7 @@ module.exports.updateGlobal = function(actions) {
                 flagMemory = { 
                     targetPower: 5000
                 };
-                flag.memory = flagMemory;
+                Memory.flags[flagName] = flagMemory;
             }
             
             var squadMemory = Memory.military.squads[flag.name];
@@ -27,14 +27,14 @@ module.exports.updateGlobal = function(actions) {
         }
     }
 
-    for (var squadName in Memory.military.squads) {
+    for (let squadName in Memory.military.squads) {
         var squadMemory = Memory.military.squads[squadName];
         var flag = Game.flags[squadName];
-        if (!Game.flags[squadName]) { //Disband
+        if (!flag) { //Disband
             console.log('Squad ' + squadName + ': Disbanding');
 
             //Unassign remaining squad members (will push them to defense)
-            for (var i = 0; i < squadMemory.creeps; i++)
+            for (let i = 0; i < squadMemory.creeps; i++)
                 delete Memory.creeps[squadMemory.creeps[i]].squad;
             delete Memory.military.squads[squadName];
             continue;
@@ -44,7 +44,7 @@ module.exports.updateGlobal = function(actions) {
         var melee = 0;
         var ranged = 0;
         var heal = 0;
-        for (var i = 0; i < squadMemory.creeps.length; i++) {
+        for (let i = 0; i < squadMemory.creeps.length; i++) {
             var creep = Game.creeps[squadMemory.creeps[i]];
             if (!creep) {
                 listUtils.removeAt(squadMemory.creeps, i)
@@ -60,10 +60,10 @@ module.exports.updateGlobal = function(actions) {
             }
         }
         squadMemory.power = power;
+        squadMemory.targetPower = flag.memory.targetPower;
         squadMemory.melee = melee;
         squadMemory.ranged = ranged;
         squadMemory.heal = heal;
-
         
         if (squadMemory.state === STATE_ATTACKING) {
             if (squadMemory.power === 0) {
@@ -75,9 +75,9 @@ module.exports.updateGlobal = function(actions) {
         }
 
         if (squadMemory.state === STATE_BUILDING) {
-            if (power >= squadMemory.targetPower) {
+            if (squadMemory.targetPower !== 0 && power >= squadMemory.targetPower) {
                 squadMemory.state = STATE_ATTACKING;
-                for (var i = 0; i < squadMemory.creeps.length; i++) {
+                for (let i = 0; i < squadMemory.creeps.length; i++) {
                     var creepMemory = Memory.creeps[squadMemory.creeps[i]];
                     creepMemory.room = flag.pos.roomName;
                 }
@@ -88,9 +88,9 @@ module.exports.updateGlobal = function(actions) {
 }
 
 module.exports.updateBase = function(base, actions, creepRequests, structureRequests, defenseRequests) {
-    for (var squadName in Memory.military.squads) {
+    for (let squadName in Memory.military.squads) {
         var squadMemory = Memory.military.squads[squadName];
-        if (squadMemory.power < squadMemory.targetPower) {
+        if (squadMemory.state === STATE_BUILDING && squadMemory.power < squadMemory.targetPower) {
             var memory = {
                 military: true,
                 squad: squadName

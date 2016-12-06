@@ -1,5 +1,8 @@
 "use strict";
 var listUtils = require("util.list");
+var mapUtils = require("util.map");
+var requestUtils = require("util.requests");
+var planner = require("util.planner");
 
 module.exports.updateGlobal = function(actions) {
 }
@@ -7,17 +10,34 @@ module.exports.updateGlobal = function(actions) {
 module.exports.updateBase = function(base, actions, creepRequests, structureRequests, defenseRequests) {
     var baseMemory = base.memory;
     
-    //Claim adjacent rooms
+    //If we haven't claimed our base room yet, do it now
+    if (!listUtils.contains(baseMemory.rooms, base.name))
+        claimRoom(base, Game.rooms[base.name]);
+
     var exits = Game.map.describeExits(base.name);
-    for (var dir in exits) {
+    for (let dir in exits) {
         var roomName = exits[dir];
-        if (!listUtils.contains(baseMemory.rooms, roomName)) {
+        if (Game.map.isRoomAvailable(roomName)) {
             var roomMemory = Memory.rooms[roomName];
-            var room = Game.rooms[roomName];
-            if (room && roomMemory && roomMemory.scanned && !roomMemory.claimed) {
-                var controller = room.controller;
-                if (controller && !controller.owner && (!controller.reservation || mapUtils.isReserved(room)))
-                    claimRoom(base, room);
+
+            if (roomMemory && !listUtils.contains(baseMemory.rooms, roomName)) {
+                var room = Game.rooms[roomName];
+                if (room && !roomMemory.owner) {
+                    if (room)
+                        claimRoom(base, room);
+                    else
+                        roomMemory.rescanTime = Game.time; //Force a rescan
+                }            
+            }
+
+            if (!roomMemory || ((!roomMemory.scanned || roomMemory.rescanTime <= Game.time) && !roomMemory.scout)) {
+                var memory = {
+                    military: true, 
+                    special: true,
+                    role: 'scout', 
+                    target: roomName 
+                };
+                requestUtils.add(creepRequests, 0.90, memory);
             }
         }
     }
@@ -32,7 +52,7 @@ function claimRoom(base, room) {
     listUtils.add(baseMemory.rooms, room.name);
     
     //Claim sources/minerals
-    for (var i = 0; i < roomMemory.sources.length; i++) {
+    for (let i = 0; i < roomMemory.sources.length; i++) {
         var id = roomMemory.sources[i];
         var sourceMemory = Memory.sources[id];
 
@@ -45,7 +65,7 @@ function claimRoom(base, room) {
             sourceMemory.distance = distance;
         }
     }
-    for (var i = 0; i < roomMemory.minerals.length; i++) {
+    for (let i = 0; i < roomMemory.minerals.length; i++) {
         var id = roomMemory.minerals[i];
         var mineralMemory = Memory.minerals[id];
 
@@ -66,12 +86,12 @@ function claimRoom(base, room) {
     //Plan room
     if (room.name === base.name) {
         baseMemory.plan.queued = planner.addCoreRoom(base, room, roomMemory);
-        for (var key in baseMemory.plan.queued)
+        for (let key in baseMemory.plan.queued)
             baseMemory.plan.built[key] = [];
     }
     else {
         var plan = planner.addExtensionRoom(base, room, roomMemory);
-        for (var key in plan)
+        for (let key in plan)
             baseMemory.plan.queued[key] = baseMemory.plan.queued[key].concat(plan[key]);
     }
 
@@ -87,7 +107,7 @@ function unclaimRoom(base, room) {
     listUtils.remove(baseMemory.rooms, room.name);
     
     //Unclaim sources/minerals
-    for (var i = 0; i < roomMemory.sources.length; i++) {
+    for (let i = 0; i < roomMemory.sources.length; i++) {
         var id = roomMemory.sources[i];
         var sourceMemory = Memory.sources[id];
 
@@ -97,7 +117,7 @@ function unclaimRoom(base, room) {
             sourceMemory.distance = 0;
         }
     }
-    for (var i = 0; i < roomMemory.minerals.length; i++) {
+    for (let i = 0; i < roomMemory.minerals.length; i++) {
         var id = roomMemory.minerals[i];
         var mineralMemory = Memory.minerals[id];
 

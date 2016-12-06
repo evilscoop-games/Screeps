@@ -8,7 +8,7 @@ module.exports.scanRoom = function(room) {
 
     //Add sources
     var sources = room.find(FIND_SOURCES);
-    for (var i = 0; i < sources.length; i++) {
+    for (let i = 0; i < sources.length; i++) {
         var id = sources[i].id;
         listUtils.add(roomMemory.sources, id);
         var harvestPositions = mapUtils.findSpacesAround(sources[i].pos);
@@ -22,7 +22,7 @@ module.exports.scanRoom = function(room) {
     
     //Add minerals
     var minerals = room.find(FIND_MINERALS);
-    for (var i = 0; i < minerals.length; i++) {
+    for (let i = 0; i < minerals.length; i++) {
         var id = minerals[i].id;
         listUtils.add(roomMemory.minerals, id);
         var harvestPositions = mapUtils.findSpacesAround(minerals[i].pos);
@@ -36,6 +36,8 @@ module.exports.scanRoom = function(room) {
     }
     
     roomMemory.scanned = true;
+    delete roomMemory.rescanTime;
+    
     Memory.rooms[room.name] = roomMemory;
     return roomMemory;
 }

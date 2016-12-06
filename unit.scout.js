@@ -2,7 +2,6 @@
 var listUtils = require('util.list');
 var memoryUtils = require('util.memory');
 var partUtils = require('util.parts');
-var scanner = require('util.scanner');
 
 const CORE_PARTS = [MOVE];
 const REPEAT_PARTS = [];
@@ -21,18 +20,14 @@ module.exports.onCreate = function(name, memory) {
 }
 
 module.exports.onDestroy = function(name, memory) {
-    var roomMemory = Memory.rooms[memory.target];
-    if (roomMemory && roomMemory.scout === name)
-        delete roomMemory.scout;
+    delete Memory.rooms[memory.target].scout;
 }
 
 module.exports.update = function(creep, memory, actions) {
     var roomMemory = Memory.rooms[memory.target];
     var baseMemory = Memory.bases[memory.base];
-    if (!roomMemory.scanned) {
-        if (creep.pos.roomName === memory.target)
-            scanner.scanRoom(Game.rooms[memory.target]);
-        else {
+    if (!roomMemory.scanned || roomMemory.rescanTime <= Game.time) {
+        if (creep.pos.roomName !== memory.target) {
             var pos = creep.pos.findClosestByPath(creep.room.findExitTo(memory.target));
             if (pos) {
                 if (actions.moveTo(creep, pos, true))

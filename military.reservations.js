@@ -7,7 +7,7 @@ module.exports.updateGlobal = function(actions) {
 module.exports.updateBase = function(base, actions, creepRequests, structureRequests, defenseRequests) {
     var baseMemory = base.memory;
 
-    for (var i = 0; i < baseMemory.rooms.length; i++) {
+    for (let i = 0; i < baseMemory.rooms.length; i++) {
         var roomName = baseMemory.rooms[i];
         var room = Game.rooms[roomName];
         var roomMemory = Memory.rooms[roomName];

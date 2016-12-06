@@ -33,9 +33,9 @@ module.exports.update = function(creep, memory, actions) {
 }
 
 function findTarget(creep, baseMemory) {
-    for (var role in baseMemory.roles) {
+    for (let role in baseMemory.roles) {
         var creeps = baseMemory.roles[role].creeps;
-        for (var i = 0; i < creeps.length; i++) {
+        for (let i = 0; i < creeps.length; i++) {
             var creep = Game.creeps[creeps[i]];
             if (creep.hits !== creep.hitsMax)
                 return creep;

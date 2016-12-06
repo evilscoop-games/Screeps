@@ -1,28 +1,8 @@
 "use strict";
 var actions = require('actions');
-var debug = require('util.debug');
+var debug = require('debug');
 var listUtils = require('util.list');
-var mapUtils = require('util.map');
 var memoryUtils = require('util.memory');
-var partUtils = require('util.parts');
-var requestUtils = require('util.requests');
-var scanner = require('util.scanner');
-var planner = require('util.planner');
-var baseManagers = [
-    require('base.storage'),
-    require('base.territory'),
-    
-    require('base.creeps'),
-    require('base.construction'),
-
-    require('base.builders'),
-    require('base.harvesters'),
-    require('base.miners'),
-    require('base.transporters'),
-    require('base.upgraders'),
-    
-    require('base.spawns')
-]
 var militaryManagers = [
     require('military.creeps'),
     require('military.intel'),
@@ -31,9 +11,31 @@ var militaryManagers = [
     require('military.squads'),
 
     require('military.reservations'),
-    require('military.defense'),
-    require('military.scouts')    
+    require('military.defense')
 ]
+var baseManagers = [
+    require('base.territory'), //Must be first
+    require('base.storage'),
+    
+    require('base.creeps'),
+    require('base.structures'),
+
+    require('base.builders'),
+    require('base.harvesters'),
+    require('base.miners'),
+    require('base.transporters'),
+    require('base.upgraders'),
+    
+    require('base.construction'), //Must be last
+    require('base.spawns') //Must be last
+]
+var unitManagers = {
+    healer: require('unit.healer'),
+    reserver: require('unit.reserver'),
+    scout: require('unit.scout'),
+    melee: require('unit.melee'),
+    ranged: require('unit.ranged')
+}
 var creepManagers = {
     builder_defense: require('creep.builder_defense'),
     builder_road: require('creep.builder_road'),
@@ -50,34 +52,21 @@ var creepManagers = {
     scavenger: require('creep.scavenger'),
     upgrader: require('creep.upgrader')
 }
-var unitManagers = {
-    healer: require('unit.healer'),
-    reserver: require('unit.reserver'),
-    scout: require('unit.scout'),
-    melee: require('unit.melee'),
-    ranged: require('unit.ranged')
-}
 var towerManager = require('structure.tower');
 
 function init() {
     memoryUtils.init();
-
-    //Find spawns and build bases
-    for (var spawnName in Game.spawns) {
-        var spawn = Game.spawns[spawnName];
-        Memory.structures[spawn.id] = {};
-        if (!Memory.bases[spawn.room.name])
-            createBase(spawn.room).memory;
-    }
     
     //Set up military roles
     var militaryMemory = Memory.military;
-    for (var manager in unitManagers)
-        militaryMemory.roles[manager] = [];
+    for (let manager in unitManagers)
+        militaryMemory.roles[manager] = memoryUtils.createRole();
+
+    Memory.init = true;
 }
 
 module.exports.loop = function () {
-    if (!Memory.bases)
+    if (!Memory.init)
         init(); //Init Memory
 
     Game.debug = debug;
@@ -86,21 +75,23 @@ module.exports.loop = function () {
         Game.bases = {};
         var bucketLevel = checkBucket();
 
-        debug.beginLoop();
-        if (bucketLevel >= 2) {
-            updateGlobal();            
-            for (var name in Memory.bases)
-                updateBase(name);
+        if (bucketLevel !== 0) {
+            var runManagers = bucketLevel >= 2;
+
+            debug.beginLoop();
+            updateGlobal(runManagers);            
+            for (let name in Memory.bases)
+                updateBase(name, runManagers);
+            if (bucketLevel >= 1) {
+                for(var name in Game.creeps)  
+                    updateCreep(Game.creeps[name]);
+            }
+            debug.endLoop();
         }
-        if (bucketLevel >= 1) {
-            for(var name in Game.creeps)  
-                updateCreep(Game.creeps[name]);
-        }
-        debug.endLoop();
     }
 }
 
-function updateGlobal() {
+function updateGlobal(runManagers) {
     try
     {
         debug.startGlobalSection();
@@ -108,10 +99,21 @@ function updateGlobal() {
         Game.creepManagers = creepManagers;
         Game.unitManagers = unitManagers;
 
-        for (var i = 0; i < unitManagers.length; i++)
-            militaryManagers[i].updateGlobal(actions);
-        for (var i = 0; i < baseManagers.length; i++)
-            baseManagers[i].updateGlobal(actions);
+        //Find spawns and build bases
+        for (let spawnName in Game.spawns) {
+            var spawn = Game.spawns[spawnName];
+            if (!Memory.bases[spawn.room.name]) {
+                createBase(spawn.room);
+                Memory.structures[spawn.id] = {};
+            }
+        }
+
+        if (runManagers) {
+            for (let i = 0; i < militaryManagers.length; i++)
+                militaryManagers[i].updateGlobal(actions);
+            for (let i = 0; i < baseManagers.length; i++)
+                baseManagers[i].updateGlobal(actions);
+        }
 
         debug.endSection();
     } catch (error) {
@@ -119,7 +121,7 @@ function updateGlobal() {
     }
 }
 
-function updateBase(name) {
+function updateBase(name, runManagers) {
     try
     {        
         var base = {
@@ -130,22 +132,29 @@ function updateBase(name) {
         };
         Game.bases[name] = base;
 
+        if (!Game.rooms[name]) {
+            destroyBase(base);
+            return;
+        }
+
         var creepRequests = [];
         var structureRequests = [];
         var defenseRequests = [];
 
-        for (var i = 0; i < militaryManagers.length; i++) {
-            debug.startBaseSection(base, militaryManagers[i].name);
-            militaryManagers[i].updateBase(base, actions, creepRequests, structureRequests, defenseRequests);
-            debug.endSection();
-        }
-        for (var i = 0; i < baseManagers.length; i++) {
-            debug.startBaseSection(base, baseManagers[i].name);
-            baseManagers[i].updateBase(base, actions, creepRequests, structureRequests, defenseRequests);
-            debug.endSection();
+        if (runManagers) {
+            for (let i = 0; i < militaryManagers.length; i++) {
+                debug.startBaseSection(base, militaryManagers[i].name);
+                militaryManagers[i].updateBase(base, actions, creepRequests, structureRequests, defenseRequests);
+                debug.endSection();
+            }
+            for (let i = 0; i < baseManagers.length; i++) {
+                debug.startBaseSection(base, baseManagers[i].name);
+                baseManagers[i].updateBase(base, actions, creepRequests, structureRequests, defenseRequests);
+                debug.endSection();
+            }
         }
 
-        //Update towers
+        //Update structures
         var towers = base.memory.structures[STRUCTURE_TOWER];
         for(var i = 0; i < towers.length; i++)
             towerManager.updateTower(Game.structures[towers[i]], actions);
@@ -202,7 +211,7 @@ function createBase(room) {
     Game.bases[room.name] = base;
 
     baseMemory.structures[STRUCTURE_CONTROLLER] = [];
-    for (var structureType in CONSTRUCTION_COST) {
+    for (let structureType in CONSTRUCTION_COST) {
         if (structureType !== STRUCTURE_RAMPART &&
             structureType !== STRUCTURE_WALL && 
             structureType !== STRUCTURE_ROAD &&
@@ -211,7 +220,7 @@ function createBase(room) {
     }
 
     var structures = room.find(FIND_MY_STRUCTURES);
-    for (var i = 0; i < structures.length; i++) {
+    for (let i = 0; i < structures.length; i++) {
         var structure = structures[i];
         var list = baseMemory.structures[structure.structureType];
         if (list)
@@ -219,25 +228,18 @@ function createBase(room) {
         if (structure.structureType === STRUCTURE_SPAWN)
             listUtils.add(baseMemory.spawns, structure.name);
     }
-
-    scanner.scanRoom(room);
-    claimRoom(base, room);    
     
-    for (var manager in creepManagers) {
-        baseMemory.roles[manager] = {
-            parts: {
-                move: 0,
-                work: 0,
-                carry: 0,
-                attack: 0,
-                ranged_attack: 0,
-                tough: 0,
-                heal: 0,
-                claim: 0
-            },
-            creeps: []
-        };
-    }
+    for (let manager in creepManagers)
+        baseMemory.roles[manager] = memoryUtils.createRole()
+
+    console.log(base.name + ': Created');
+}
+
+function destroyBase(base) {
+    delete Memory.bases[base.name];
+    delete Game.bases[base.name];
+    
+    console.log(base.name + ': Destroyed');
 }
 
 var skipLoops = 0;
