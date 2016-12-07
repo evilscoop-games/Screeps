@@ -4,10 +4,11 @@ var debug = require('debug');
 var listUtils = require('util.list');
 var memoryUtils = require('util.memory');
 var militaryManagers = [
-    require('military.creeps'),
-    require('military.intel'),
+    require('military.creeps'), //Needed by intel
     require('military.flags'),
+    require('military.intel'),
 
+    require('military.claims'),
     require('military.squads'),
 
     require('military.reservations'),
@@ -30,6 +31,7 @@ var baseManagers = [
     require('base.spawns') //Must be last
 ]
 var unitManagers = {
+    claimer: require('unit.claimer'),
     healer: require('unit.healer'),
     reserver: require('unit.reserver'),
     scout: require('unit.scout'),

@@ -49,7 +49,7 @@ module.exports.updateBase = function(base, actions, creepRequests, structureRequ
     else if (baseMemory.defenseLevel < 2500 * (level - 1)) {
         var priority;
         //Dont need as many defenders if our only room is in safe mode
-        if (baseMemory.rooms.length !== 1 && !Game.rooms[base.name].controller.safeMode)
+        if (baseMemory.rooms.length !== 1 || !Game.rooms[base.name].controller.safeMode)
             priority = 0.79;
         else
             priority = 0.49;

@@ -63,7 +63,10 @@ module.exports.updateGlobal = function(actions) {
                             for (let i = 0; i < structures.length; i++) {
                                 if (structures[i].structureType === siteMemory.type) {
                                     listUtils.add(baseMemory.structures[siteMemory.type], structures[i].id);
-                                    Memory.structures[structures[i].id] = {};
+                                    var structureMemory = {};
+                                    if (siteMemory.type === STRUCTURE_SPAWN)
+                                        structureMemory.name = structures[i].name;
+                                    Memory.structures[structures[i].id] = structureMemory;
                                     success = true;
                                     break;
                                 }
@@ -94,6 +97,10 @@ module.exports.updateBase = function(base, actions, creepRequests, structureRequ
                 if (structureMemory)
                     delete Memory.structures[id];
                 listUtils.removeAt(structureIds, i);
+
+                if (structureType === STRUCTURE_SPAWN)
+                    listUtils.remove(structureMemory.name);
+
                 lostStructure = true;
                 i--;
                 console.log(base.name + ": Lost " + structureType + " (" + structureIds.length  + " left)");

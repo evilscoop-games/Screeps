@@ -14,21 +14,11 @@ module.exports.updateBase = function(base, actions, creepRequests, structureRequ
     var upgraderWorkParts = upgraders.parts.work;
     var maintainers = roles['maintainer'];
     
-    //Only upgrade once we have built all structures for that level
-    var upgradeNeeded = true;
-    for (let structureType in CONTROLLER_STRUCTURES) {
-        if (structureType != STRUCTURE_CONTAINER &&
-                structureType != STRUCTURE_ROAD &&
-                structureType != STRUCTURE_RAMPART &&
-                structureType != STRUCTURE_WALL) {
-            var currentCount = baseMemory.structures[structureType].length;
-            var maxCount = CONTROLLER_STRUCTURES[structureType][level];
-            if (currentCount < maxCount) {
-                upgradeNeeded = false;
-                break;
-            }
-        }
-    }
+    //Emphasize upgrading once we have built all storage for that level
+    var upgradeNeeded = 
+        baseMemory.structures[STRUCTURE_EXTENSION].length >= CONTROLLER_STRUCTURES[STRUCTURE_EXTENSION][level] &&
+        baseMemory.structures[STRUCTURE_STORAGE].length >= CONTROLLER_STRUCTURES[STRUCTURE_STORAGE][level] &&
+        baseMemory.structures[STRUCTURE_SPAWN].length >= CONTROLLER_STRUCTURES[STRUCTURE_SPAWN][level];
 
     //Do we need a maintainer?
     if (controller.ticksToDowngrade < 2500) {

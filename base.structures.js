@@ -8,6 +8,16 @@ module.exports.updateBase = function(base, actions, creepRequests, structureRequ
     var baseMemory = base.memory;
     var level = Game.rooms[base.name].controller.level;
     
+    var spawnCount = baseMemory.structures[STRUCTURE_SPAWN].length;
+    if (spawnCount < CONTROLLER_STRUCTURES[STRUCTURE_SPAWN][level]) {
+        var priority;
+        if (spawnCount === 0)
+            priority = 1.0;
+        else
+            priority = 0.85;
+        requestUtils.add(structureRequests, priority, STRUCTURE_SPAWN);
+    }
+
     var storageCount = baseMemory.structures[STRUCTURE_STORAGE].length;
     if (storageCount < CONTROLLER_STRUCTURES[STRUCTURE_STORAGE][level]) {
         var priority;

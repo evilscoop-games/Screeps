@@ -2,6 +2,12 @@
 Harvesters: Capped at 42 total work parts, 6 work parts each, 6 work parts per source
 Collector: Capped at 1 work part per 5 tiles of distance, half if a storage exists with past 50% capacity, 10 carry parts each
 
+--- Flag Types ---
+
+Red: Attack
+Orange: Claim
+Blue: Military Idle Rally
+
 -- Creeps ---
 
 # Critical (Don't wait for energy when building)
@@ -23,7 +29,8 @@ Collector: Capped at 1 work part per 5 tiles of distance, half if a storage exis
 0.86 - Road Builder (road_builders = 0, road_sites > 0)
 0.85 - Structure Builder (structure_builders = 0, structure_sites > 0)
 0.84 - Defense Builder (defense_builders = 0, defense_sites > 0)
-0.82 - Repairer (repairers = 0, towerCount = 0)
+0.83 - Repairer (repairers = 0, towerCount = 0)
+0.82 - Claimer (targeted)
 0.81 - Upgrader (upgraders = 0)
 0.80 - Harvester (harvesters < max)
 
