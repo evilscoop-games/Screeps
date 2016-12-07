@@ -8,13 +8,25 @@ module.exports.updateBase = function(base, actions, creepRequests, structureRequ
     var baseMemory = base.memory;
     var level = Game.rooms[base.name].controller.level;
     
+    var storageCount = baseMemory.structures[STRUCTURE_STORAGE].length;
+    if (storageCount < CONTROLLER_STRUCTURES[STRUCTURE_STORAGE][level]) {
+        var priority;
+        if (storageCount === 0)
+            priority = 0.90;
+        else
+            priority = 0.80;
+        requestUtils.add(structureRequests, priority, STRUCTURE_STORAGE);
+    }
+
     var extensionCount = baseMemory.structures[STRUCTURE_EXTENSION].length;
     if (extensionCount < CONTROLLER_STRUCTURES[STRUCTURE_EXTENSION][level]) {
         var priority;
-        if (extensionCount === 0)
+        if (extensionCount < 5)
             priority = 0.98;
+        else if (extensionCount < 10)
+            priority = 0.88;
         else
-            priority = 0.90;
+            priority = 0.78;
         requestUtils.add(structureRequests, priority, STRUCTURE_EXTENSION);
     }
 
