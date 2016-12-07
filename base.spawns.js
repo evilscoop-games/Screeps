@@ -1,5 +1,6 @@
 "use strict";
 var listUtils = require("util.list");
+var memoryUtils = require("util.memory");
 var requestUtils = require("util.requests");
 
 module.exports.updateGlobal = function(actions) {
@@ -104,16 +105,28 @@ module.exports.updateBase = function(base, actions, creepRequests, structureRequ
                         var name = spawn.createCreep(bodyInfo.body, null, memory);
                         if (_.isString(name)) {
                             if (!memory.military) {
+                                var roleMemory = baseMemory.roles[memory.role];
+                                if (!roleMemory) {
+                                    roleMemory = memoryUtil.createRole();
+                                    baseMemory.roles[memory.role] = roleMemory
+                                }
+
                                 for (let key in parts)
-                                    baseMemory.roles[memory.role].parts[key] += parts[key];
-                                var creepNames = baseMemory.roles[memory.role].creeps;
+                                    roleMemory.parts[key] += parts[key];
+                                var creepNames = roleMemory.creeps;
                                 listUtils.add(creepNames, name);
                                 manager.onCreate(name, memory);
                             }
                             else {
+                                var roleMemory = Memory.military.roles[memory.role];
+                                if (!roleMemory) {
+                                    roleMemory = memoryUtil.createRole();
+                                    Memory.military.roles[memory.role] = roleMemory
+                                }
+                                
                                 for (let key in parts)
-                                    Memory.military.roles[memory.role].parts[key] += parts[key];
-                                var creepNames = Memory.military.roles[memory.role].creeps;
+                                    roleMemory.parts[key] += parts[key];
+                                var creepNames = roleMemory.creeps;
                                 listUtils.add(creepNames, name);
                                 manager.onCreate(name, memory);
                             }

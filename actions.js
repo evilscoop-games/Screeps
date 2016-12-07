@@ -34,6 +34,7 @@ var actions = {
 
     maintain: continueMaintain,
     upgrade: continueUpgrade,
+    claim: continueClaim,
 
     reserve: continueReserve,
 };
@@ -483,7 +484,7 @@ function doReserve(creep, target, allowMove) {
         return true; //Failed
 }
 
-//Upgraders
+//Controllers
 module.exports.upgrade = function(creep, target, allowMove) {
     Game.debug.sayAction(creep, 'upgrade');
     if (doUpgrade(creep, target, allowMove) || !allowMove)
@@ -528,6 +529,32 @@ function doMaintain(creep, target, allowMove) {
 
     if (result === OK)
         return true; //Success
+    else if (allowMove && result === ERR_NOT_IN_RANGE) {
+        moveTo(creep, target.pos);
+        return false;
+    }
+    else
+        return true; //Failed
+}
+
+module.exports.claim = function(creep, target, allowMove) {
+    Game.debug.sayAction(creep, 'claim');
+    if (doClaim(creep, target, allowMove) || !allowMove)
+        return false;
+    setAction(creep, 'claim', { target: target.id });
+    return true;
+}
+function continueClaim(creep, action) {
+    var target = Game.structures[action.target];
+    if (!target)
+        target = Game.getObjectById(action.target);
+    return doClaim(creep, target, true);
+}
+function doClaim(creep, target, allowMove) {
+    var result = creep.claimController(target);
+
+    if (result === OK)
+        return false; //Continue
     else if (allowMove && result === ERR_NOT_IN_RANGE) {
         moveTo(creep, target.pos);
         return false;

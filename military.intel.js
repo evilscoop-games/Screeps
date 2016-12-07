@@ -121,8 +121,8 @@ module.exports.updateBase = function(base, actions, creepRequests, structureRequ
         if (listUtils.contains(baseMemory.rooms, creep.pos.roomName))
             totalDefenseLevel += partUtils.getPowerLevel(creep);
     }
-    for (let i = 0; i < baseMemory.rooms; i++)
-        totalThreatLevel += Memory.rooms[baseMemory.rooms[i]];
+    for (let i = 0; i < baseMemory.rooms.length; i++)
+        totalThreatLevel += Memory.rooms[baseMemory.rooms[i]].threatLevel;
     baseMemory.threatLevel = totalThreatLevel;
     baseMemory.defenseLevel = totalDefenseLevel;
 }

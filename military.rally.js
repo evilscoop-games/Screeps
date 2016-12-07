@@ -1,4 +1,5 @@
 "use strict";
+var mapUtils = require("util.map");
 var requestUtils = require("util.requests");
 
 module.exports.updateGlobal = function(actions) {

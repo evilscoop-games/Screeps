@@ -94,6 +94,11 @@ module.exports.respawn = function(pass) {
         }
         for (let name in Game.constructionSites)
             Game.constructionSites[name].remove();
+        for (let name in Game.rooms) {
+            var roads = Game.rooms[name].find(FIND_STRUCTURES, { filter: x => x.structureType === STRUCTURE_ROAD });
+            for (let i = 0; i < roads.length; i++)
+                Game.getObjectById(roads[i].id).destroy();
+        }
         return "Respawn successful";
     }
     else

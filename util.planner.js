@@ -76,11 +76,25 @@ module.exports.addCoreRoom = function(base, room, roomMemory) {
             setBadPos(structureSpots, pos[j]);
     }
 
+    //Add storage
+    var storages = [];
+    var maxStorages = CONTROLLER_STRUCTURES[STRUCTURE_STORAGE][maxControllerLevel];
+    for (let i = 0; i < maxStorages; i++) {
+        var pos = getBuildPosition(room, coreSpawn.pos, 2, 5, roadCosts, structureSpots);
+        if (pos) {
+            listUtils.add(storages, mapUtils.serializePos(pos));
+            var aroundPos = mapUtils.findSpacesAround(pos);
+            for (let j = 0; j < aroundPos.length; j++)
+                setBadPos(structureSpots, aroundPos[j]);
+            planRoadsBetween(roads, coreSpawn, pos, roadCosts);
+        }
+    }
+
     //Add extensions
     var extensions = [];
     var maxExtensions = CONTROLLER_STRUCTURES[STRUCTURE_EXTENSION][maxControllerLevel];
     for (let i = 0; i < maxExtensions; i++) {
-        var pos = getBuildPosition(room, coreSpawn.pos, 3, 25, roadCosts, structureSpots);
+        var pos = getBuildPosition(room, coreSpawn.pos, 2, 25, roadCosts, structureSpots);
         if (pos) {
             listUtils.add(extensions, mapUtils.serializePos(pos));
             var aroundPos = mapUtils.findCardinalSpacesAround(pos);
@@ -97,20 +111,6 @@ module.exports.addCoreRoom = function(base, room, roomMemory) {
         var pos = getBuildPosition(room, coreSpawn.pos, 6, 25, roadCosts, structureSpots);
         if (pos) {
             listUtils.add(towers, mapUtils.serializePos(pos));
-            var aroundPos = mapUtils.findSpacesAround(pos);
-            for (let j = 0; j < aroundPos.length; j++)
-                setBadPos(structureSpots, aroundPos[j]);
-            planRoadsBetween(roads, coreSpawn, pos, roadCosts);
-        }
-    }
-
-    //Add storage
-    var storages = [];
-    var maxStorages = CONTROLLER_STRUCTURES[STRUCTURE_STORAGE][maxControllerLevel];
-    for (let i = 0; i < maxStorages; i++) {
-        var pos = getBuildPosition(room, coreSpawn.pos, 2, 10, roadCosts, structureSpots);
-        if (pos) {
-            listUtils.add(storages, mapUtils.serializePos(pos));
             var aroundPos = mapUtils.findSpacesAround(pos);
             for (let j = 0; j < aroundPos.length; j++)
                 setBadPos(structureSpots, aroundPos[j]);
@@ -383,18 +383,18 @@ function calculatePlanRoadCost(baseMemory, roadCosts, plan) {
 
 function getBuildPosition(room, center, minRadius, maxRadius, roadCosts, structurePos) {
     var costs = getRoomCosts(roadCosts, room.name);
-    for (let max = minRadius; max <= maxRadius; max += 2) {
+    for (let max = minRadius; max <= maxRadius; max++) {
         var radius = max - minRadius;
         for (let i = 0; i < 5; i++) {
-            var xOffset = Math.random() * radius * 2 - radius;
-            xOffset += (xOffset > 0) ? minRadius : -minRadius; 
-            var yOffset = Math.random() * radius * 2 - radius;
-            yOffset += (yOffset > 0) ? minRadius : -minRadius;
-            var x = Math.round(center.x + xOffset);
-            var y = Math.round(center.y + yOffset);
-
             for (let j = 0; j < 25; j++) {
-                if (x > 4 && y > 4 && x < 45 && y < 45) {
+                var xOffset = Math.random() * radius * 2 - radius;
+                xOffset += (xOffset > 0) ? minRadius : -minRadius; 
+                var yOffset = Math.random() * radius * 2 - radius;
+                yOffset += (yOffset > 0) ? minRadius : -minRadius;
+                var x = Math.round(center.x + xOffset);
+                var y = Math.round(center.y + yOffset);
+
+                if (x > 5 && y > 5 && x < 44 && y < 44) {
                     var cost = costs.get(x, y);
                     if (cost !== 1 && cost !== 255 && structurePos[x * 100 + y] !== true) {
                         var results = room.lookAt(x, y);

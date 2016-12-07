@@ -3,8 +3,8 @@ var listUtils = require('util.list');
 var memoryUtils = require('util.memory');
 var partUtils = require('util.parts');
 
-const CORE_PARTS = [MOVE,MOVE,CLAIM,CLAIM];
-const REPEAT_PARTS = [MOVE,CLAIM];
+const CORE_PARTS = [MOVE,MOVE,CLAIM,CLAIM]; //1300
+const REPEAT_PARTS = [/*MOVE,CLAIM*/];
 
 module.exports.getBodyInfo = function(energy) {
     return partUtils.get(CORE_PARTS, REPEAT_PARTS, energy);

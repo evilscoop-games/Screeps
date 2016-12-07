@@ -1,4 +1,5 @@
 "use strict";
+var mapUtils = require("util.map");
 var requestUtils = require("util.requests");
 
 module.exports.updateGlobal = function(actions) {
@@ -15,13 +16,17 @@ module.exports.updateBase = function(base, actions, creepRequests, structureRequ
                 Memory.flags[flag.name] = flagMemory;
             }
             if (!flagMemory.claimer) {
-                var memory = {
-                    military: true,
-                    special: true,
-                    role: "claimer",
-                    flag: flag.name
-                };
-                requestUtils.add(creepRequests, 0.82, memory);                
+                var room = Game.rooms[flag.pos.roomName];
+                if (room && room.controller && !flag.room.controller.my) {
+                    var memory = {
+                        military: true,
+                        special: true,
+                        role: "claimer",
+                        flag: flag.name,
+                        room: room.name
+                    };
+                    requestUtils.add(creepRequests, 0.82, memory);
+                }
             }
         }
     }

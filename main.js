@@ -8,6 +8,7 @@ var militaryManagers = [
     require('military.flags'),
     require('military.intel'),
 
+    require('military.rally'),
     require('military.claims'),
     require('military.squads'),
 
