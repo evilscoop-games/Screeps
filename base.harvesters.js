@@ -62,10 +62,10 @@ module.exports.updateBase = function(base, actions, creepRequests, structureRequ
         }
 
         //Adjust max harvesters to a more reasonable value
-        if (maxHarvesters > 3)
-            maxHarvesters = 3;
+        if (maxHarvesters > 2)
+            maxHarvesters = 2;
         
-        if (sourceMemory.harvesters.length < maxHarvesters) {
+        if (containerMemory.amount < 2000 && sourceMemory.harvesters.length < maxHarvesters) {
             var sourceWorkParts = 0;
             for (let j = 0; j < sourceMemory.harvesters.length; j++)
                 sourceWorkParts += Memory.creeps[sourceMemory.harvesters[j]].parts.work;

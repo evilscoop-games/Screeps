@@ -34,7 +34,12 @@ module.exports.update = function(creep, memory, actions) {
         if (memory.target) {
             var sourceMemory = Memory.sources[memory.target];
             var container = Game.getObjectById(sourceMemory.container.id);
-            if (container && container.store.energy > 25) {
+            if (!container) {
+                var pos = mapUtils.deserializePos(sourceMemory.pos);
+                actions.moveTo(creep, pos);
+                return;
+            }
+            else if (container.store.energy > 25) {
                 if (actions.withdraw(creep, container, true))
                     return;
             }

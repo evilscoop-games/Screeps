@@ -60,9 +60,9 @@ function claimRoom(base, room) {
         if (!sourceMemory.owner || distance < sourceMemory.distance) {
             if (sourceMemory.owner)
                 listUtils.remove(Memory.bases[sourceMemory.owner].sources, id);
-            listUtils.add(baseMemory.sources, id);
             sourceMemory.owner = base.name;
             sourceMemory.distance = distance;
+            listUtils.add(baseMemory.sources, id);
         }
     }
     for (let i = 0; i < roomMemory.minerals.length; i++) {
@@ -73,9 +73,9 @@ function claimRoom(base, room) {
         if (!mineralMemory.owner || distance < mineralMemory.distance) {
             if (mineralMemory.owner)
                 listUtils.remove(Memory.bases[mineralMemory.owner].minerals, id);
-            listUtils.add(baseMemory.minerals, id);
             mineralMemory.owner = base.name;
             mineralMemory.distance = distance;
+            listUtils.add(baseMemory.minerals, id);
         }
     }
 

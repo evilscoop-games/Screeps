@@ -19,7 +19,8 @@ module.exports.init = function() {
     Memory.flags = {};
     Memory.rooms = {};
     Memory.military = {
-        roles: {}
+        roles: {},
+        squads: {}
     };
     Memory.minerals = {};
     Memory.spawns = {};

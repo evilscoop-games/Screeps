@@ -58,8 +58,11 @@ module.exports.updateBase = function(base, actions, creepRequests, structureRequ
         var room = Game.rooms[baseMemory.rooms[i]];
         if (room) {
             var roomResources = room.find(FIND_DROPPED_ENERGY);
-            for (var j = 0; j < roomResources.length; j++)
-                listUtils.add(droppedEnergy, roomResources[j].id);
+            for (var j = 0; j < roomResources.length; j++) {
+                var resource = roomResources[j];
+                if (resource.amount >= 100)
+                    listUtils.add(droppedEnergy, resource.id);
+            }
         }
     }
     base.droppedEnergy = droppedEnergy;

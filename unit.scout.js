@@ -36,9 +36,7 @@ module.exports.update = function(creep, memory, actions) {
         }
     }
     else if (listUtils.contains(baseMemory.rooms, memory.target)) { //Is it claimed yet?
-        var spawn = creep.pos.findClosestByPath(FIND_MY_STRUCTURES, { filter: (x) => {
-            return x.structureType === STRUCTURE_SPAWN;
-        }});
+        var spawn = Game.spawns[baseMemory.spawns[0]];
         if (spawn) {
             actions.recycle(creep, spawn, true);
             return;

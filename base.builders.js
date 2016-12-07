@@ -36,15 +36,17 @@ module.exports.updateBase = function(base, actions, creepRequests, structureRequ
     for (let i = 0; i < baseMemory.rooms.length; i++) {
         var room = Game.rooms[baseMemory.rooms[i]];
         if (room) {
+            //TODO: Uncomment this!!!
+
             //Search for any hurt road
-            var targets = room.find(FIND_STRUCTURES, { filter: x => {
+            /*var targets = room.find(FIND_STRUCTURES, { filter: x => {
                 return (x.structureType === STRUCTURE_ROAD &&
                     x.hits < x.hitsMax);
             }});
             if (targets.length !== 0) {
                 for (let j = 0; j < targets.length; j++)
                     listUtils.add(roadRepairTargets, targets[j].id);
-            }
+            }*/
 
             //Search for any hurt wall
             for (let hits = 10000; hits <= 1000000000; hits *= 10) {

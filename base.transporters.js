@@ -23,6 +23,7 @@ module.exports.updateBase = function(base, actions, creepRequests, structureRequ
     var containers = [];
     
     var maxCollectorPartCount = 0;
+    var criticalCollectors = 0;
     for (let i = 0; i < baseMemory.sources.length; i++) {
         var sourceMemory = Memory.sources[baseMemory.sources[i]];
         var sourceCollectors = sourceMemory.collectors;
@@ -31,19 +32,25 @@ module.exports.updateBase = function(base, actions, creepRequests, structureRequ
             var carry = 0;
             for (let j = 0; j < sourceCollectors.length; j++)
                 carry += Memory.creeps[sourceCollectors[j]].parts.carry;
-            var maxCarry = Math.min(60, Math.ceil(distance / 10));
+            var maxCarry = Math.ceil(distance / 10);
             maxCollectorPartCount += maxCarry;
-            if (sourceMemory.container.amount > 50 * carry && carry < maxCarry)
+            if (sourceMemory.container.amount > 50 * carry && carry < maxCarry) {
+                if (sourceCollectors.length === 0 && sourceMemory.container.amount === 2000)
+                    criticalCollectors++;
                 listUtils.add(containers, baseMemory.sources[i]);
+            }
         }
     }
 
+
+    maxCollectorPartCount = Math.min(60, maxCollectorPartCount);
     if (base.dropoffs.length === 0)
         maxCollectorPartCount /= 2; //If we have nowhere to put energy, dont spawn as many collectors
-    if (collectorCarryParts < maxCollectorPartCount) {
+
+    if (containers.length !== 0 && collectorCarryParts < maxCollectorPartCount) {
         var priority;
         var memory = { role: 'collector' };
-        if (collectorCarryParts < harvesterCount * 6)
+        if (criticalCollectors !== 0)
             priority = 0.98;
         else
             priority = 0.78;
