@@ -89,6 +89,20 @@ module.exports.addCoreRoom = function(base, room, roomMemory) {
             planRoadsBetween(roads, coreSpawn, pos, roadCosts);
         }
     }
+    
+    //Add terminal
+    var terminals = [];
+    var maxTerminals = CONTROLLER_STRUCTURES[STRUCTURE_TERMINAL][maxControllerLevel];
+    for (let i = 0; i < maxTerminals; i++) {
+        var pos = getBuildPosition(room, coreSpawn.pos, 2, 5, roadCosts, structureSpots);
+        if (pos) {
+            listUtils.add(terminals, mapUtils.serializePos(pos));
+            var aroundPos = mapUtils.findSpacesAround(pos);
+            for (let j = 0; j < aroundPos.length; j++)
+                setBadPos(structureSpots, aroundPos[j]);
+            planRoadsBetween(roads, coreSpawn, pos, roadCosts);
+        }
+    }
 
     //Add extensions
     var extensions = [];
@@ -123,6 +137,7 @@ module.exports.addCoreRoom = function(base, room, roomMemory) {
     result[STRUCTURE_ROAD] = roads;
     result[STRUCTURE_TOWER] = towers;
     result[STRUCTURE_STORAGE] = storages;
+    result[STRUCTURE_TERMINAL] = terminals;
     result[STRUCTURE_WALL] = walls;
     result[STRUCTURE_RAMPART] = ramparts;
     return result;
@@ -188,6 +203,7 @@ module.exports.addExtensionRoom = function(base, room, roomMemory) {
     result[STRUCTURE_ROAD] = roads;
     result[STRUCTURE_TOWER] = [];
     result[STRUCTURE_STORAGE] = [];
+    result[STRUCTURE_TERMINAL] = [];
     result[STRUCTURE_WALL] = [];
     result[STRUCTURE_RAMPART] = [];
     return result;

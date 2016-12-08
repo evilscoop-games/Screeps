@@ -31,7 +31,7 @@ module.exports.update = function(creep, memory, actions) {
     }
     var controller = creep.room.controller;
     if (controller) {
-        if (actions.claim(creep, controller))
+        if (actions.claim(creep, controller, true))
             return;
     }
 }

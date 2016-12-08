@@ -12,8 +12,12 @@ module.exports.updateBase = function(base, actions, creepRequests, structureRequ
     var threatRooms = [];
     var melee = Memory.military.roles.melee;
     var ranged = Memory.military.roles.ranged;
+    var hybrid = Memory.military.roles.hybrid;
     var healer = Memory.military.roles.healer;
-    var military = melee.creeps.concat(ranged.creeps).concat(healer.creeps);
+    var attackPartCount = melee.parts.attack + hybrid.parts.attack;
+    var rangedPartCount = ranged.parts.attack + hybrid.parts.attack;
+    var healPartCount = healer.parts.heal;
+    var military = melee.creeps.concat(ranged.creeps).concat(healer.creeps).concat(hybrid.creeps);
 
     for (let i = 0; i < baseMemory.rooms.length; i++) {
         var roomName = baseMemory.rooms[i];
@@ -35,18 +39,16 @@ module.exports.updateBase = function(base, actions, creepRequests, structureRequ
     var memory = {
         military: true
     };
-    if (healer.parts.heal < Math.floor((ranged.parts.ranged_attack + melee.parts.attack) / 4))
+    if (healPartCount < Math.floor((attackPartCount + rangedPartCount) / 4))
         memory.role = 'healer';
-    else if (ranged.parts.ranged_attack < melee.parts.attack)
-        memory.role = 'ranged';
     else
-        memory.role = 'melee';
+        memory.role = 'hybrid';
 
     if (baseMemory.threatLevel > baseMemory.defenseLevel) {
         console.log('Threat alert! (' + baseMemory.defenseLevel + ' vs ' + baseMemory.threatLevel + ')');
         requestUtils.add(creepRequests, 0.95, memory);
     }
-    else if (baseMemory.defenseLevel < 2500 * (level - 1)) {
+    else if (baseMemory.defenseLevel < 100 * (level - 1)) {
         var priority;
         //Dont need as many defenders if our only room is in safe mode
         if (baseMemory.rooms.length !== 1 || !Game.rooms[base.name].controller.safeMode)

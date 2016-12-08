@@ -15,19 +15,52 @@ module.exports.updateBase = function(base, actions, creepRequests, structureRequ
                 flagMemory = {};
                 Memory.flags[flag.name] = flagMemory;
             }
-            if (!flagMemory.claimer) {
-                var room = Game.rooms[flag.pos.roomName];
-                if (room && room.controller && !flag.room.controller.my) {
-                    var memory = {
-                        military: true,
-                        special: true,
-                        role: "claimer",
-                        flag: flag.name,
-                        room: room.name
-                    };
-                    requestUtils.add(creepRequests, 0.82, memory);
+            var roomName = flag.pos.roomName;
+            var room = Game.rooms[roomName];
+            if ((!room || (room.controller && !flag.room.controller.my)) && !flagMemory.claimer) {
+                var memory = {
+                    military: true,
+                    special: true,
+                    role: "claimer",
+                    flag: flag.name,
+                    room: roomName
+                };
+                requestUtils.add(creepRequests, 0.82, memory);
+            }
+            else if (!Game.bases[roomName]) {
+                var roomMemory = Memory.rooms[roomName];
+                if (roomMemory && roomMemory.scanned === true) {
+                    var target = null;
+                    for (let key in Game.constructionSites) {
+                        var site = Game.constructionSites[key];
+                        if (site.pos.roomName === roomName) {
+                            target = site;
+                            break;
+                        }
+                    }
+                    if (target !== null) {
+                        for (let i = 0; i < roomMemory.sources.length; i++) {
+                            var sourceId = roomMemory.sources[i];
+                            var sourceMemory = Memory.sources[sourceId];
+                            if (sourceMemory) {
+                                if (sourceMemory.harvesters.length < sourceMemory.maxHarvesters) {
+                                    var memory = {
+                                        military: true,
+                                        special: true,
+                                        role: "builder_remote",
+                                        target: target.id,
+                                        source: sourceId,
+                                        room: roomName
+                                    };
+                                    requestUtils.add(creepRequests, 0.76, memory);
+                                }
+                            }
+                        }
+                    }
                 }
             }
+            else
+                flag.remove();
         }
     }
 }

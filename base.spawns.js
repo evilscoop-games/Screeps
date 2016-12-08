@@ -9,19 +9,6 @@ module.exports.updateGlobal = function(actions) {
 module.exports.updateBase = function(base, actions, creepRequests, structureRequests, defenseRequests) {
     var baseMemory = base.memory;
 
-    //Declump around spawns        
-    for (let i = 0; i < baseMemory.spawns.length; i++) {
-        var spawn = Game.spawns[baseMemory.spawns[i]];
-        if (spawn) {
-            var pos = spawn.pos;
-            var targets = spawn.room.lookForAtArea(LOOK_CREEPS, pos.y - 2, pos.x - 2, pos.y + 2, pos.x + 2, true);
-            for (let j = 0; j < targets.length; j++) {
-                if (!actions.hasAnyAction(targets[j].creep))
-                    actions.flee(targets[j].creep, spawn, 3, true);
-            }
-        }
-    }
-
     //Spawn creeps
     baseMemory.construction.requestedCreepPriority = 0.0;
 
@@ -107,7 +94,7 @@ module.exports.updateBase = function(base, actions, creepRequests, structureRequ
                             if (!memory.military) {
                                 var roleMemory = baseMemory.roles[memory.role];
                                 if (!roleMemory) {
-                                    roleMemory = memoryUtil.createRole();
+                                    roleMemory = memoryUtils.createRole();
                                     baseMemory.roles[memory.role] = roleMemory
                                 }
 
@@ -120,7 +107,7 @@ module.exports.updateBase = function(base, actions, creepRequests, structureRequ
                             else {
                                 var roleMemory = Memory.military.roles[memory.role];
                                 if (!roleMemory) {
-                                    roleMemory = memoryUtil.createRole();
+                                    roleMemory = memoryUtils.createRole();
                                     Memory.military.roles[memory.role] = roleMemory
                                 }
                                 

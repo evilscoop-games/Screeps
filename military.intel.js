@@ -68,7 +68,7 @@ module.exports.updateGlobal = function(actions) {
                 var type = structure.structureType; 
                 if (type === STRUCTURE_TOWER) {          
                     listUtils.add(towers, structure.id);    
-                    staticDefenseLevel += 50000;
+                    staticDefenseLevel += 5000;
                 }
             }
 
@@ -77,7 +77,7 @@ module.exports.updateGlobal = function(actions) {
                 var type = structure.structureType; 
                 if (type === STRUCTURE_TOWER) {          
                     listUtils.add(hostiles, structure.id);    
-                    threatLevel += 50000;
+                    threatLevel += 5000;
                 }
                 else if (type !== STRUCTURE_CONTROLLER &&
                         type !== STRUCTURE_RAMPART) {

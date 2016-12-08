@@ -36,17 +36,15 @@ module.exports.updateBase = function(base, actions, creepRequests, structureRequ
     for (let i = 0; i < baseMemory.rooms.length; i++) {
         var room = Game.rooms[baseMemory.rooms[i]];
         if (room) {
-            //TODO: Uncomment this!!!
-
             //Search for any hurt road
-            /*var targets = room.find(FIND_STRUCTURES, { filter: x => {
+            var targets = room.find(FIND_STRUCTURES, { filter: x => {
                 return (x.structureType === STRUCTURE_ROAD &&
                     x.hits < x.hitsMax);
             }});
             if (targets.length !== 0) {
                 for (let j = 0; j < targets.length; j++)
                     listUtils.add(roadRepairTargets, targets[j].id);
-            }*/
+            }
 
             //Search for any hurt wall
             for (let hits = 10000; hits <= 1000000000; hits *= 10) {
@@ -189,7 +187,7 @@ module.exports.updateBase = function(base, actions, creepRequests, structureRequ
         if (roadBuilderWorkParts === 0)
             priority = 0.86;
         else if (roadBuilderWorkParts < level)
-            priority = 0.76;
+            priority = 0.75;
         else
             priority = 0.66;
         requestUtils.add(creepRequests, priority, memory);
@@ -202,7 +200,7 @@ module.exports.updateBase = function(base, actions, creepRequests, structureRequ
         if (structureBuilderWorkParts === 0)
             priority = 0.85;
         else if (structureBuilderWorkParts < level)
-            priority = 0.75;
+            priority = 0.74;
         else
             priority = 0.65;
         requestUtils.add(creepRequests, priority, memory);
@@ -215,7 +213,7 @@ module.exports.updateBase = function(base, actions, creepRequests, structureRequ
         if (defenseBuilderWorkParts === 0)
             priority = 0.84;
         else if (defenseBuilderWorkParts < level)
-            priority = 0.74;
+            priority = 0.73;
         else
             priority = 0.64;
         requestUtils.add(creepRequests, priority, memory);

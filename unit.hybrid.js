@@ -3,8 +3,8 @@ var listUtils = require('util.list');
 var mapUtils = require('util.map');
 var partUtils = require('util.parts');
 
-const CORE_PARTS = [TOUGH,MOVE,MOVE,RANGED_ATTACK];
-const REPEAT_PARTS = [TOUGH,MOVE,RANGED_ATTACK];
+const CORE_PARTS = [TOUGH,MOVE,MOVE,MOVE,ATTACK,RANGED_ATTACK];
+const REPEAT_PARTS = [TOUGH,MOVE,MOVE,MOVE,ATTACK,RANGED_ATTACK];
 
 module.exports.getBodyInfo = function(energy) {
     return partUtils.get(CORE_PARTS, REPEAT_PARTS, energy);
@@ -27,16 +27,18 @@ module.exports.update = function(creep, memory, actions) {
             actions.moveTo(creep, pos, true);
         return;
     }
-
     var roomMemory = Memory.rooms[memory.room];
     if (roomMemory) {
         var hostile = mapUtils.findClosestHostileByPath(creep.pos, roomMemory.hostiles);
         if (hostile) {
             var pos = hostile.pos;
-            if (actions.rangedAttack(creep, hostile, true))
-                return;
             if (creep.pos.isNearTo(pos))
-                actions.flee(creep, pos, 2);
+                actions.attack(creep, hostile);
+            else {
+                if (actions.rangedAttack(creep, hostile, true))
+                    return;
+                actions.moveTo(creep, hostile.pos); //Keep pushing towards enemy
+            }
             return;
         }
     }

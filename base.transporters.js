@@ -77,7 +77,8 @@ module.exports.updateBase = function(base, actions, creepRequests, structureRequ
         }
     }
 
-    if (storageCount !== 0 && coreRechargerCount < level - 1) {
+    var targetCoreRechargerCount = Math.floor(baseMemory.structures[STRUCTURE_EXTENSION].length / 10) + 1;
+    if (storageCount !== 0 && coreRechargerCount < targetCoreRechargerCount) {
         var memory = { role: 'recharger_core' };
         if (coreRechargerCount === 0)
             requestUtils.add(creepRequests, 0.99, memory);

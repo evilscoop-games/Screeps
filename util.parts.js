@@ -35,11 +35,33 @@ module.exports.get = function(initialParts, repeatParts, maxCost) {
 }
 
 module.exports.getPowerLevel = function(creep) {
-    var attack = creep.getActiveBodyparts(ATTACK);
-    var rangedAttack = creep.getActiveBodyparts(RANGED_ATTACK);
-    var heal = creep.getActiveBodyparts(HEAL);
     var hits = creep.hits;
-    return (attack * 800) + (rangedAttack * 1500) + (heal * 2500) + hits;
+    var body = creep.body;
+    var power = 0;
+    var boostMul = 1.0;
+    for (let i = 0; i < body.length; i++) {
+        var part = body[i];
+        var boosts = {};
+        if (part.hits > 0) {
+            switch (part.type) {
+                case ATTACK:
+                    power += 70; //80-10
+                    break;
+                case RANGED_ATTACK:
+                    power += 140; //150-10
+                    break;
+                case HEAL:
+                    power += 240; //250-10
+                    break;
+            }
+            power += part.hits * 0.1;
+            if (part.boost !== undefined && boosts[part.type] === undefined) {
+                boosts[part.type] = true;
+                boostMul += 0.2;
+            }
+        }
+    }
+    return Math.round(power * boostMul);
 }
 
 function getCost(body) {

@@ -27,17 +27,21 @@ var baseManagers = [
     require('base.miners'),
     require('base.transporters'),
     require('base.upgraders'),
+
+    require('base.declump'),
     
     require('base.construction'), //Must be last
     require('base.spawns') //Must be last
 ]
 var unitManagers = {
+    builder_remote: require('unit.builder_remote'),
     claimer: require('unit.claimer'),
     healer: require('unit.healer'),
     reserver: require('unit.reserver'),
     scout: require('unit.scout'),
     melee: require('unit.melee'),
-    ranged: require('unit.ranged')
+    ranged: require('unit.ranged'),
+    hybrid: require('unit.hybrid')
 }
 var creepManagers = {
     builder_defense: require('creep.builder_defense'),
