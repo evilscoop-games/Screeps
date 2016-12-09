@@ -96,10 +96,14 @@ module.exports.createMineral = function() {
         maxHarvesters: 0,
         container: {
             id: null,
-            site: null,
+            //site: null,
             pos: null,
             amount: 0,
             ready: false
+        },
+        extractor: {
+            id: null,
+            //site: null
         },
         type: null
     }

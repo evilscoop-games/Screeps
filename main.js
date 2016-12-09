@@ -24,7 +24,6 @@ var baseManagers = [
 
     require('base.builders'),
     require('base.harvesters'),
-    require('base.miners'),
     require('base.transporters'),
     require('base.upgraders'),
 

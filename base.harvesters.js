@@ -7,6 +7,7 @@ module.exports.updateGlobal = function(actions) {
 
 module.exports.updateBase = function(base, actions, creepRequests, structureRequests, defenseRequests) {
     var baseMemory = base.memory;
+    var level = Game.rooms[base.name].controller.level;
     var roles = baseMemory.roles;
     var simpleHarvesterCount = roles['harvester_simple'].creeps.length;
     var harvesters = roles['harvester'];
@@ -16,49 +17,13 @@ module.exports.updateBase = function(base, actions, creepRequests, structureRequ
     for (let i = 0; i < baseMemory.sources.length; i++) {
         var sourceMemory = Memory.sources[baseMemory.sources[i]];
         var maxHarvesters = sourceMemory.maxHarvesters;
-        var maxCollectors = Math.ceil(sourceMemory.distance / 50.0);
 
         //Update containers
         var room = Game.rooms[sourceMemory.room];
+        var containerMemory = sourceMemory.container;
         if (room) {
-            var containerMemory = sourceMemory.container;
             containerMemory.amount = 0;
-
-            if (containerMemory.id) {
-                delete containerMemory.site;
-                var container = Game.getObjectById(containerMemory.id);
-                if (container)
-                    containerMemory.amount = _.sum(container.store);
-                else
-                    containerMemory.id = null; //Destroyed
-            }
-            else if (containerMemory.site) {
-                var site = Game.constructionSites[containerMemory.site];
-                if (!site)
-                    delete containerMemory.site;
-            }
-
-            if (!containerMemory.id && !containerMemory.site) {
-                var pos = mapUtils.deserializePos(sourceMemory.container.pos);
-                if (pos) {
-                    if (room.createConstructionSite(pos.x, pos.y, STRUCTURE_CONTAINER) !== OK) {
-                        var structures = pos.lookFor(LOOK_STRUCTURES);
-                        for (let j = 0; j < structures.length; j++) {
-                            if (structures[j].structureType === STRUCTURE_CONTAINER) {
-                                containerMemory.id = structures[j].id;
-                                break;
-                            }
-                        }
-                        var sites = pos.lookFor(LOOK_CONSTRUCTION_SITES);
-                        for (let j = 0; j < sites.length; j++) {
-                            if (sites[j].structureType === STRUCTURE_CONTAINER) {
-                                containerMemory.site = sites[j].id;
-                                break;
-                            }
-                        }
-                    }
-                }
-            }
+            checkContainer(room, containerMemory);
         }
 
         //Adjust max harvesters to a more reasonable value
@@ -77,7 +42,7 @@ module.exports.updateBase = function(base, actions, creepRequests, structureRequ
             else
                 maxSourceWorkParts = 6;
 
-            if (sourceWorkParts < 6 && harvesterWorkPartCount < 42) {
+            if (sourceWorkParts < maxSourceWorkParts && harvesterWorkPartCount < 42) {
                 var id = baseMemory.sources[i];
                 var roomMemory = Memory.rooms[Memory.sources[id].room];
                 if (roomMemory && roomMemory.threatLevel === 0) {
@@ -95,6 +60,128 @@ module.exports.updateBase = function(base, actions, creepRequests, structureRequ
                     else
                         priority = 0.80;
                     requestUtils.add(creepRequests, priority, memory);
+                }
+            }
+        }
+    }
+
+    if (level >= 6) {
+        for (let i = 0; i < baseMemory.minerals.length; i++) {
+            var mineralMemory = Memory.minerals[baseMemory.minerals[i]];
+            var maxMiners = mineralMemory.maxMiners;
+
+            //Update containers
+            var room = Game.rooms[mineralMemory.room];
+            var containerMemory = mineralMemory.container;
+            var extractorMemory = mineralMemory.extractor;
+            if (room) {
+                containerMemory.amount = 0;
+                checkContainer(room, containerMemory);
+                checkExtractor(room, extractorMemory, mineralMemory.pos);
+            }
+
+            if (!mineralMemory.extractor)
+                continue; 
+
+            //Adjust max miners to a more reasonable value
+            if (maxMiners > 1)
+                maxMiners = 1;
+            
+            if (mineralMemory.extractor.id && containerMemory.amount < 2000 && mineralMemory.miners.length < maxMiners) {
+                var sourceWorkParts = 0;
+                for (let j = 0; j < mineralMemory.miners.length; j++)
+                    sourceWorkParts += Memory.creeps[mineralMemory.miners[j]].parts.work;
+
+                var room = Game.rooms[mineralMemory.room];
+                if (sourceWorkParts < 6) {
+                    var id = baseMemory.minerals[i];
+                    var roomMemory = Memory.rooms[Memory.minerals[id].room];
+                    if (roomMemory && roomMemory.threatLevel === 0) {
+                        var priority;
+                        var memory = {
+                            role: 'miner',
+                            target: id
+                        };
+                        if (mineralMemory.miners.length === 0)
+                            priority = 0.96;
+                        else
+                            priority = 0.80;
+                        requestUtils.add(creepRequests, priority, memory);
+                    }
+                }
+            }
+        }
+    }
+}
+
+function checkContainer(room, containerMemory) {
+    if (containerMemory.id) {
+        delete containerMemory.site;
+        var container = Game.getObjectById(containerMemory.id);
+        if (container)
+            containerMemory.amount = _.sum(container.store);
+        else
+            containerMemory.id = null; //Destroyed
+    }
+    else if (containerMemory.site) {
+        var site = Game.constructionSites[containerMemory.site];
+        if (!site)
+            delete containerMemory.site;
+    }
+
+    if (!containerMemory.id && !containerMemory.site) {
+        var pos = mapUtils.deserializePos(containerMemory.pos);
+        if (pos) {
+            if (room.createConstructionSite(pos.x, pos.y, STRUCTURE_CONTAINER) !== OK) {
+                var structures = pos.lookFor(LOOK_STRUCTURES);
+                for (let j = 0; j < structures.length; j++) {
+                    if (structures[j].structureType === STRUCTURE_CONTAINER) {
+                        containerMemory.id = structures[j].id;
+                        break;
+                    }
+                }
+                var sites = pos.lookFor(LOOK_CONSTRUCTION_SITES);
+                for (let j = 0; j < sites.length; j++) {
+                    if (sites[j].structureType === STRUCTURE_CONTAINER) {
+                        containerMemory.site = sites[j].id;
+                        break;
+                    }
+                }
+            }
+        }
+    }
+}
+
+function checkExtractor(room, extractorMemory, pos) {
+    if (extractorMemory.id) {
+        delete extractorMemory.site;
+        var container = Game.getObjectById(extractorMemory.id);
+        if (!container)
+            extractorMemory.id = null; //Destroyed
+    }
+    else if (extractorMemory.site) {
+        var site = Game.constructionSites[extractorMemory.site];
+        if (!site)
+            delete extractorMemory.site;
+    }
+
+    if (!extractorMemory.id && !extractorMemory.site) {
+        var pos = mapUtils.deserializePos(pos);
+        if (pos) {
+            if (room.createConstructionSite(pos.x, pos.y, STRUCTURE_EXTRACTOR) !== OK) {
+                var structures = pos.lookFor(LOOK_STRUCTURES);
+                for (let j = 0; j < structures.length; j++) {
+                    if (structures[j].structureType === STRUCTURE_EXTRACTOR) {
+                        extractorMemory.id = structures[j].id;
+                        break;
+                    }
+                }
+                var sites = pos.lookFor(LOOK_CONSTRUCTION_SITES);
+                for (let j = 0; j < sites.length; j++) {
+                    if (sites[j].structureType === STRUCTURE_EXTRACTOR) {
+                        extractorMemory.site = sites[j].id;
+                        break;
+                    }
                 }
             }
         }
