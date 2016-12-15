@@ -128,14 +128,15 @@ function updateGlobal(runManagers) {
 }
 
 function updateBase(name, runManagers) {
+    var base = {
+        name: name,
+        memory: Memory.bases[name],
+        dropoffs: [],
+        pickups: []
+    };
+
     try
-    {        
-        var base = {
-            name: name,
-            memory: Memory.bases[name],
-            dropoffs: [],
-            pickups: []
-        };
+    {
         Game.bases[name] = base;
 
         if (!Game.rooms[name]) {
@@ -166,6 +167,8 @@ function updateBase(name, runManagers) {
             towerManager.updateTower(Game.structures[towers[i]], actions);
 
     } catch (error) {
+        if (base.memory && !base.memory.error)
+            base.memory.error = error.stack;
         console.log("[!] Base Error (" + name + "): " + error.stack);
     }
 }
