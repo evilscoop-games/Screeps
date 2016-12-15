@@ -33,8 +33,11 @@ module.exports.update = function(creep, memory, actions) {
     else {
         if (memory.target) {
             var sourceMemory = Memory.sources[memory.target];
-            var container = Game.getObjectById(sourceMemory.container.id);
-            if (!container) {
+            var id = sourceMemory.container.id;
+            var container = Game.getObjectById(id);
+            if (!id)
+                unclaimTarget(creep.name, memory);
+            else if (!container) {
                 var pos = mapUtils.deserializePos(sourceMemory.pos);
                 actions.moveTo(creep, pos);
                 return;
