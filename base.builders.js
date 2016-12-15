@@ -22,15 +22,21 @@ module.exports.updateBase = function(base, actions, creepRequests, structureRequ
     var structureTarget = null, roadTarget = null, defenseTarget = null;
     var structureRepairTargets = [], criticalDefenseRepairTargets = [], defenseRepairTargets = [], roadRepairTargets = []
     
-    //Find defenses to repair
+    //Find structures to repair
     for (let type in baseMemory.structures) {
         var structures = baseMemory.structures[type];
         for (let i = 0; i < structures.length; i++) {
             var structure = Game.structures[structures[i]];
-            if (structure && structure.hits < structure.hitsMax) {
+            if (structure && structure.hits < structure.hitsMax)
                 listUtils.add(structureRepairTargets, structure.id);
-                break;
-            }
+        }
+    }
+    for (let i = 0; i < baseMemory.minerals.length; i++) {
+        var mineralMemory = Memory.minerals[baseMemory.minerals[i]];
+        if (mineralMemory.container.id) {
+            var container = Game.getObjectById(mineralMemory.container.id);
+            if (container && container.hits < container.hitsMax)
+                listUtils.add(structureRepairTargets, container.id);
         }
     }
     for (let i = 0; i < baseMemory.rooms.length; i++) {

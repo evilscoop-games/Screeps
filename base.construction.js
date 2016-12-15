@@ -9,8 +9,29 @@ module.exports.updateGlobal = function(actions) {
         var site = Game.constructionSites[id];
         var siteMemory = Memory.constructionSites[id];
         if (!siteMemory) {
-            if (site.structureType !== STRUCTURE_CONTAINER) {
-                var bases = [];
+            var isBaseOwned = false;
+            
+            if (site.structureType === STRUCTURE_CONTAINER) {
+                //Source containers in the home room, and mineral contains in any room are base-owned
+                if (Memory.bases[site.pos.roomName])
+                    isBaseOwned = true;
+                else {
+                    var roomMemory = Memory.rooms[site.pos.roomName];
+                    if (roomMemory) {
+                        var minerals = roomMemory.minerals;
+                        for (let i = 0; i < minerals.length; i++) {
+                            var mineralMemory = Memory.minerals[minerals[i]];
+                            if (mapUtils.deserializePos(mineralMemory.container.pos).isEqualTo(site.pos))
+                                isBaseOwned = true;
+                        }
+                    }
+                }
+            }
+            else
+                isBaseOwned = true;
+
+            var bases = [];
+            if (isBaseOwned === true) {
                 for (let baseName in Memory.bases) {
                     var baseMemory = Memory.bases[baseName];
                     if (listUtils.contains(baseMemory.rooms, site.room.name)) {
@@ -23,12 +44,11 @@ module.exports.updateGlobal = function(actions) {
                         listUtils.add(bases, baseName);
                     }
                 }
-
-                siteMemory = {
-                    bases: bases,
-                    pos: mapUtils.serializePos(site.pos),
-                    type: site.structureType
-                }
+            }
+            siteMemory = {
+                bases: bases,
+                pos: mapUtils.serializePos(site.pos),
+                type: site.structureType
             }
             Memory.constructionSites[id] = siteMemory;
         }
@@ -49,7 +69,7 @@ module.exports.updateGlobal = function(actions) {
                         listUtils.remove(baseMemory.construction.roads, id);
                     else if (siteMemory.type === STRUCTURE_WALL || siteMemory.type === STRUCTURE_RAMPART)
                         listUtils.remove(baseMemory.construction.defenses, id);
-                    else if (siteMemory.type !== STRUCTURE_CONTAINER)
+                    else
                         listUtils.remove(baseMemory.construction.structures, id);
 
                     if (siteMemory.type !== STRUCTURE_ROAD &&

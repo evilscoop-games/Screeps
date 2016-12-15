@@ -30,10 +30,17 @@ module.exports.updateBase = function(base, actions, creepRequests, structureRequ
         if (maxHarvesters > 2)
             maxHarvesters = 2;
         
-        if (containerMemory.amount < 2000 && sourceMemory.harvesters.length < maxHarvesters) {
+        var sourceHarvesters = sourceMemory.harvesters;
+        if (containerMemory.amount < 2000 && sourceHarvesters.length < maxHarvesters) {
             var sourceWorkParts = 0;
-            for (let j = 0; j < sourceMemory.harvesters.length; j++)
-                sourceWorkParts += Memory.creeps[sourceMemory.harvesters[j]].parts.work;
+            for (let j = 0; j < sourceHarvesters.length; j++) {
+                var creepMemory = Memory.creeps[sourceHarvesters[j]];
+                if (!creepMemory) {
+                    listUtils.removeAt(sourceHarvesters, j--);
+                    continue;
+                }
+                sourceWorkParts += creepMemory.parts.work;
+            }
 
             var maxSourceWorkParts;
             var room = Game.rooms[sourceMemory.room];
@@ -55,7 +62,7 @@ module.exports.updateBase = function(base, actions, creepRequests, structureRequ
                         priority = 0.99;
                         memory.role = 'harvester_simple';
                     }
-                    else if (sourceMemory.harvesters.length === 0)
+                    else if (sourceHarvesters.length === 0)
                         priority = 0.96;
                     else
                         priority = 0.80;
@@ -80,17 +87,21 @@ module.exports.updateBase = function(base, actions, creepRequests, structureRequ
                 checkExtractor(room, extractorMemory, mineralMemory.pos);
             }
 
-            if (!mineralMemory.extractor)
-                continue; 
-
             //Adjust max miners to a more reasonable value
             if (maxMiners > 1)
                 maxMiners = 1;
             
-            if (mineralMemory.extractor.id && containerMemory.amount < 2000 && mineralMemory.miners.length < maxMiners) {
+            var mineralMiners = mineralMemory.miners;
+            if (extractorMemory.id && containerMemory.id && containerMemory.amount < 2000 && mineralMemory.miners.length < maxMiners) {
                 var sourceWorkParts = 0;
-                for (let j = 0; j < mineralMemory.miners.length; j++)
-                    sourceWorkParts += Memory.creeps[mineralMemory.miners[j]].parts.work;
+                for (let j = 0; j < mineralMiners.length; j++) {                    
+                    var creepMemory = Memory.creeps[mineralMiners[j]];
+                    if (!creepMemory) {
+                        listUtils.removeAt(mineralMiners, j--);
+                        continue;
+                    }
+                    sourceWorkParts += Memory.creeps[mineralMiners[j]].parts.work;
+                }
 
                 var room = Game.rooms[mineralMemory.room];
                 if (sourceWorkParts < 6) {
@@ -102,7 +113,7 @@ module.exports.updateBase = function(base, actions, creepRequests, structureRequ
                             role: 'miner',
                             target: id
                         };
-                        if (mineralMemory.miners.length === 0)
+                        if (mineralMiners.length === 0)
                             priority = 0.96;
                         else
                             priority = 0.80;

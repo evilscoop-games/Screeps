@@ -35,24 +35,10 @@ module.exports.update = function(creep, memory, actions) {
             var structure = Game.getObjectById(mineralMemory.container.id);
             if (structure) {
                 var isFull = _.sum(creep.carry) === creep.carryCapacity;
-                if (structure.hits < structure.hitsMax) {
-                    if (actions.repair(creep, structure, isFull))
-                        return;
-                }
-                else {
-                    if (actions.deposit(creep, structure, isFull))
-                        return;
-                }
-            }
-        }
-        /*else if (mineralMemory.container.site) {
-            var site = Game.constructionSites[mineralMemory.container.site];
-            if (site) {
-                mineralMemory.container.id = null;
-                if (actions.build(creep, site, isFull))
+                if (actions.deposit(creep, structure, isFull, mineralMemory.type))
                     return;
             }
-        }*/
+        }
         if (mineralMemory.extractor.id) {
             if (_.sum(creep.carry) !== creep.carryCapacity) {
                 if (actions.harvest(creep, target, true))

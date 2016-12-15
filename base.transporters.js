@@ -30,8 +30,14 @@ module.exports.updateBase = function(base, actions, creepRequests, structureRequ
         if (sourceMemory.container.id) {
             var distance = sourceMemory.distance * 2; //There and back
             var carry = 0;
-            for (let j = 0; j < sourceCollectors.length; j++)
-                carry += Memory.creeps[sourceCollectors[j]].parts.carry;
+            for (let j = 0; j < sourceCollectors.length; j++) {
+                var creepMemory = Memory.creeps[sourceCollectors[j]];
+                if (!creepMemory) {
+                    listUtils.removeAt(sourceCollectors, j--);
+                    continue;
+                }
+                carry += creepMemory.parts.carry;
+            }
             var maxCarry = Math.ceil(distance / 10);
             maxCollectorPartCount += maxCarry;
             if (sourceMemory.container.amount > 50 * carry && carry < maxCarry) {
@@ -43,7 +49,7 @@ module.exports.updateBase = function(base, actions, creepRequests, structureRequ
     }
 
 
-    maxCollectorPartCount = Math.min(60, maxCollectorPartCount);
+    maxCollectorPartCount = Math.min(100, maxCollectorPartCount);
     if (base.dropoffs.length === 0)
         maxCollectorPartCount /= 2; //If we have nowhere to put energy, dont spawn as many collectors
 

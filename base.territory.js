@@ -47,6 +47,7 @@ function claimRoom(base, room) {
     var baseMemory = base.memory;
     var roomMemory = Memory.rooms[room.name];
     var spawn = Game.spawns[baseMemory.spawns[0]];
+    var isCore = room.name === base.name;
 
     //Add room
     listUtils.add(baseMemory.rooms, room.name);
@@ -65,17 +66,19 @@ function claimRoom(base, room) {
             listUtils.add(baseMemory.sources, id);
         }
     }
-    for (let i = 0; i < roomMemory.minerals.length; i++) {
-        var id = roomMemory.minerals[i];
-        var mineralMemory = Memory.minerals[id];
+    if (isCore === true) {
+        for (let i = 0; i < roomMemory.minerals.length; i++) {
+            var id = roomMemory.minerals[i];
+            var mineralMemory = Memory.minerals[id];
 
-        var distance = mapUtils.getPathDistanceTo(spawn.pos, mapUtils.deserializePos(mineralMemory.pos));
-        if (!mineralMemory.owner || distance < mineralMemory.distance) {
-            if (mineralMemory.owner)
-                listUtils.remove(Memory.bases[mineralMemory.owner].minerals, id);
-            mineralMemory.owner = base.name;
-            mineralMemory.distance = distance;
-            listUtils.add(baseMemory.minerals, id);
+            var distance = mapUtils.getPathDistanceTo(spawn.pos, mapUtils.deserializePos(mineralMemory.pos));
+            if (!mineralMemory.owner || distance < mineralMemory.distance) {
+                if (mineralMemory.owner)
+                    listUtils.remove(Memory.bases[mineralMemory.owner].minerals, id);
+                mineralMemory.owner = base.name;
+                mineralMemory.distance = distance;
+                listUtils.add(baseMemory.minerals, id);
+            }
         }
     }
 
@@ -84,7 +87,7 @@ function claimRoom(base, room) {
     baseMemory.minerals = _.sortBy(baseMemory.minerals, x => Memory.minerals[x].distance);
 
     //Plan room
-    if (room.name === base.name) {
+    if (isCore === true) {
         baseMemory.plan.queued = planner.addCoreRoom(base, room, roomMemory);
         for (let key in baseMemory.plan.queued)
             baseMemory.plan.built[key] = [];

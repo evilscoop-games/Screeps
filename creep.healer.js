@@ -37,7 +37,7 @@ function findTarget(creep, baseMemory) {
         var creeps = baseMemory.roles[role].creeps;
         for (let i = 0; i < creeps.length; i++) {
             var creep = Game.creeps[creeps[i]];
-            if (creep.hits !== creep.hitsMax)
+            if (creep && creep.hits !== creep.hitsMax)
                 return creep;
         }
     }
