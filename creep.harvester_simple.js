@@ -24,8 +24,15 @@ module.exports.update = function(creep, memory, actions) {
 
     if(creep.carry.energy < creep.carryCapacity) {
         var target = Game.getObjectById(memory.target);
-        if (actions.harvest(creep, target, true))
-            return;
+        if (!target) {
+            var pos = mapUtils.deserializePos(Memory.sources[memory.target].pos);
+            actions.moveTo(creep, pos);
+            return;        
+        }
+        else {
+            if (actions.harvest(creep, target, true))
+                return;
+        }
     }
     
     if (creep.carry.energy > 0) {
