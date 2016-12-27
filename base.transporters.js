@@ -70,8 +70,6 @@ module.exports.updateBase = function(base, actions, creepRequests, structureRequ
             if (Game.creeps[name].carry.energy !== 0)
                 continue;
 
-            if (base.name === 'W8N2')
-                console.log(containers.length);
             var bestSource = Memory.sources[containers[0]];
             var bestIndex = 0;
             for (let j = 1; j < containers.length; j++) {
