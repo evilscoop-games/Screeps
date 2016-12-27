@@ -403,10 +403,11 @@ function getBuildPosition(room, center, minRadius, maxRadius, roadCosts, structu
         var radius = max - minRadius;
         for (let i = 0; i < 5; i++) {
             for (let j = 0; j < 25; j++) {
-                var xOffset = Math.random() * radius * 2 - radius;
-                xOffset += (xOffset > 0) ? minRadius : -minRadius; 
-                var yOffset = Math.random() * radius * 2 - radius;
-                yOffset += (yOffset > 0) ? minRadius : -minRadius;
+                var angle = Math.random() * Math.PI * 2;
+                var distance = Math.random() * radius + minRadius;
+                var xOffset = Math.round(Math.cos(angle) * distance);
+                var yOffset = Math.round(Math.sin(angle) * distance);
+
                 var x = Math.round(center.x + xOffset);
                 var y = Math.round(center.y + yOffset);
 
