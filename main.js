@@ -4,33 +4,36 @@ var debug = require('debug');
 var listUtils = require('util.list');
 var memoryUtils = require('util.memory');
 var militaryManagers = [
-    require('military.creeps'), //Needed by intel
-    require('military.flags'),
-    require('military.intel'),
+    { manager: require('military.creeps'), offset: 0, interval: 1 }, //Checks for destroyed creeps
+    { manager: require('military.flags'), offset: 0, interval: 1 }, //Checks for destroyed flags
 
-    require('military.rally'),
-    require('military.claims'),
-    require('military.squads'),
-
-    require('military.reservations'),
-    require('military.defense')
+    { manager: require('military.intel'), offset: 1, interval: 2 }, //Updates power levels in each room
+    { manager: require('military.rally'), offset: 1, interval: 2 }, //Processes new rally flags
+    
+    //Managers that request units (must be the same tick as base.spawns)
+    { manager: require('military.claims'), offset: 1, interval: 2 }, //Processes claim flags, requests remote builders
+    { manager: require('military.reservations'), offset: 1, interval: 2 }, //Requests reservers
+    { manager: require('military.defense'), offset: 1, interval: 2 }, //Requests defenders
+    { manager: require('military.squads'), offset: 1, interval: 2 } //Processes attack squads
 ]
 var baseManagers = [
-    require('base.territory'), //Must be first
-    require('base.storage'),
+    { manager: require('base.creeps'), offset: 0, interval: 1 }, //Checks for destroyed creeps
+    { manager: require('base.storage'), offset: 0, interval: 1 }, //Updates storages/resources needing pickup, and nonfull dropoffs
     
-    require('base.creeps'),
-    require('base.structures'),
+    //Managers that request structures (must be the same tick as base.construction)
+    { manager: require('base.structures'), offset: 0, interval: 2 }, //Requests structures
+    { manager: require('base.construction'), offset: 0, interval: 2 }, //Checks construction sites, destroyed structures, creates structures
 
-    require('base.builders'),
-    require('base.harvesters'),
-    require('base.transporters'),
-    require('base.upgraders'),
+    //Managers that request units (must be the same tick as base.spawns)
+    { manager: require('base.harvesters'), offset: 1, interval: 2 }, //Requests harvesters and miners
+    { manager: require('base.builders'), offset: 1, interval: 2 }, //Requests builders/repairers and assigns targets
+    { manager: require('base.transporters'), offset: 1, interval: 2 }, //Requests collectors/rechargers/scavengers and assigns targets
+    { manager: require('base.upgraders'), offset: 1, interval: 2 }, //Requests upgraders/maintainers
+    { manager: require('base.territory'), offset: 1, interval: 2 }, //Requests scouts, claims bases/rooms
+    { manager: require('base.spawns'), offset: 1, interval: 2 }, //Spawns creeps
 
-    require('base.declump'),
-    
-    require('base.construction'), //Must be last
-    require('base.spawns') //Must be last
+    //Must be last:
+    { manager: require('base.declump'), offset: 0, interval: 2 }, //Moves creeps away from spawns
 ]
 var unitManagers = {
     builder_remote: require('unit.builder_remote'),
@@ -76,10 +79,11 @@ module.exports.loop = function () {
         init(); //Init Memory
 
     Game.debug = debug;
+    time = Game.time;
     if (Memory.debug.run === true) {
             
         Game.bases = {};
-        var bucketLevel = checkBucket();
+        var bucketLevel = checkBucket(); //0 = Skip, 1 = Creeps only, 2 = Creeps+Managers
 
         if (bucketLevel !== 0) {
             var runManagers = bucketLevel >= 2;
@@ -98,8 +102,7 @@ module.exports.loop = function () {
 }
 
 function updateGlobal(runManagers) {
-    try
-    {
+    try {
         debug.startGlobalSection();
 
         Game.creepManagers = creepManagers;
@@ -115,10 +118,16 @@ function updateGlobal(runManagers) {
         }
 
         if (runManagers) {
-            for (let i = 0; i < militaryManagers.length; i++)
-                militaryManagers[i].updateGlobal(actions);
-            for (let i = 0; i < baseManagers.length; i++)
-                baseManagers[i].updateGlobal(actions);
+            for (let i = 0; i < militaryManagers.length; i++) {
+                var manager = militaryManagers[i];
+                if (hasElapsed(manager.offset, manager.interval))
+                    manager.manager.updateGlobal(actions);
+            }
+            for (let i = 0; i < baseManagers.length; i++) {
+                var manager = baseManagers[i];
+                if (hasElapsed(manager.offset, manager.interval))
+                    manager.manager.updateGlobal(actions);
+            }
         }
 
         debug.endSection();
@@ -150,13 +159,17 @@ function updateBase(name, runManagers) {
 
         if (runManagers) {
             for (let i = 0; i < militaryManagers.length; i++) {
-                debug.startBaseSection(base, militaryManagers[i].name);
-                militaryManagers[i].updateBase(base, actions, creepRequests, structureRequests, defenseRequests);
+                var manager = militaryManagers[i];
+                debug.startBaseSection(base);
+                if (hasElapsed(manager.offset, manager.interval))
+                    manager.manager.updateBase(base, actions, creepRequests, structureRequests, defenseRequests);
                 debug.endSection();
             }
             for (let i = 0; i < baseManagers.length; i++) {
-                debug.startBaseSection(base, baseManagers[i].name);
-                baseManagers[i].updateBase(base, actions, creepRequests, structureRequests, defenseRequests);
+                var manager = baseManagers[i];
+                debug.startBaseSection(base);
+                if (hasElapsed(manager.offset, manager.interval))
+                    manager.manager.updateBase(base, actions, creepRequests, structureRequests, defenseRequests);
                 debug.endSection();
             }
         }
@@ -280,4 +293,9 @@ function checkBucket() {
         skipLoops = 0;
         return 2;
     }
+}
+
+var time = 0;
+function hasElapsed(offset, interval) {
+    return interval === 1 || (time + offset) % interval === 0;
 }
