@@ -38,7 +38,7 @@ module.exports.updateBase = function(base, actions, creepRequests, structureRequ
                 }
                 carry += creepMemory.parts.carry;
             }
-            var maxCarry = Math.ceil(distance / 8);
+            var maxCarry = Math.ceil(distance / 5);
             maxCollectorPartCount += maxCarry;
             if (sourceMemory.container.amount > 50 * carry && carry < maxCarry) {
                 if (sourceCollectors.length === 0 && sourceMemory.container.amount >= 1500)
