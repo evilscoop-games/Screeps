@@ -21,8 +21,8 @@ module.exports.updateBase = function(base, actions, creepRequests, structureRequ
                 memory = { queue: [] };
                 Memory.spawns[spawnName] = memory;
             }
-            var queue = memory.queue;
-            
+
+            var queue = memory.queue;            
             for (let j = 0; j < queue.length; j++) {
                 var creepName = queue[j];
                 var creep = Game.creeps[creepName];

@@ -23,11 +23,11 @@ module.exports.update = function(creep, memory, actions) {
     var coreSpawn = Game.spawns[baseMemory.spawns[0]];
             
     if (creep.carry.energy > 0) {
+        unclaimTarget(creep.name, memory);
         var dropoff = mapUtils.findDropoff(creep.pos, Game.bases[memory.base], creep.carry.energy);
         if (dropoff) {
             if (actions.deposit(creep, dropoff, true))
                 return;
-            unclaimTarget(creep.name, memory);
         }
     }
     else {
@@ -42,12 +42,10 @@ module.exports.update = function(creep, memory, actions) {
                 actions.moveTo(creep, pos);
                 return;
             }
-            else if (container.store.energy > 25) {
+            else {
                 if (actions.withdraw(creep, container, true))
                     return;
             }
-            else
-                unclaimTarget(creep.name, memory);
         }
     }
 }

@@ -38,10 +38,10 @@ module.exports.updateBase = function(base, actions, creepRequests, structureRequ
                 }
                 carry += creepMemory.parts.carry;
             }
-            var maxCarry = Math.ceil(distance / 10);
+            var maxCarry = Math.ceil(distance / 8);
             maxCollectorPartCount += maxCarry;
             if (sourceMemory.container.amount > 50 * carry && carry < maxCarry) {
-                if (sourceCollectors.length === 0 && sourceMemory.container.amount === 2000)
+                if (sourceCollectors.length === 0 && sourceMemory.container.amount >= 1500)
                     criticalCollectors++;
                 listUtils.add(containers, baseMemory.sources[i]);
             }
@@ -66,7 +66,12 @@ module.exports.updateBase = function(base, actions, creepRequests, structureRequ
     for (let i = 0; i < collectors.creeps.length && containers.length !== 0; i++) {
         var name = collectors.creeps[i];
         var creepMemory = Memory.creeps[name];
-        if (!creepMemory.target && containers.length > 0) {
+        if (!creepMemory.target) {
+            if (Game.creeps[name].carry.energy !== 0)
+                continue;
+
+            if (base.name === 'W8N2')
+                console.log(containers.length);
             var bestSource = Memory.sources[containers[0]];
             var bestIndex = 0;
             for (let j = 1; j < containers.length; j++) {
@@ -83,7 +88,7 @@ module.exports.updateBase = function(base, actions, creepRequests, structureRequ
         }
     }
 
-    var targetCoreRechargerCount = Math.floor(baseMemory.structures[STRUCTURE_EXTENSION].length / 10) + 1;
+    var targetCoreRechargerCount = Math.floor(baseMemory.structures[STRUCTURE_EXTENSION].length / 15) + 1;
     if (storageCount !== 0 && coreRechargerCount < targetCoreRechargerCount) {
         var memory = { role: 'recharger_core' };
         if (coreRechargerCount === 0)
