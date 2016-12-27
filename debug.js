@@ -1,35 +1,38 @@
 "use strict";
-var times, currentSectionGroup, currentSection, lastCpu;
+var times, logNext = 0, lastCpu;
+var currentSectionGroup, currentSection;
+const logTimeTicks = 5;
 
 // CPU Usage
 module.exports.beginLoop = function() {
-    if (Memory.debug.logNext === true) {
-        times = { init: 0, global: 0, bases: {}, creeps: {}};
+    if (logNext !== 0) {
         currentSection = null;
-        lastCpu = Game.cpu.getUsed();
-        times["init"] = lastCpu;
+        times.init += Game.cpu.getUsed();
     }
 }
 module.exports.startGlobalSection = function() {
-    if (Memory.debug.logNext === true) {
+    if (logNext !== 0) {
         currentSectionGroup = times;
         currentSection = "global";
+        lastCpu = Game.cpu.getUsed();
     }
 }
 module.exports.startBaseSection = function(base) {
-    if (Memory.debug.logNext === true) {
+    if (logNext !== 0) {
         currentSectionGroup = times.bases;
-        currentSection = base.Name;
+        currentSection = base.name;
+        lastCpu = Game.cpu.getUsed();
     }
 }
 module.exports.startCreepSection = function(creep) {
-    if (Memory.debug.logNext === true) {
+    if (logNext !== 0) {
         currentSectionGroup = times.creeps;
         currentSection = creep.memory.role;
+        lastCpu = Game.cpu.getUsed();
     }
 }
 module.exports.endSection = function() {
-    if (Memory.debug.logNext === true) {
+    if (logNext !== 0) {
         var cpu = Game.cpu.getUsed();
         if (!currentSectionGroup[currentSection])
             currentSectionGroup[currentSection] = cpu - lastCpu;
@@ -39,19 +42,25 @@ module.exports.endSection = function() {
     }
 }
 module.exports.endLoop = function() {
-    if (Memory.debug.logNext === true) {
-        times.init = times.init.toFixed(2);
-        times.global = times.global.toFixed(2);
-        for (let name in times.bases)
-            times.bases[name] = times.bases[name].toFixed(2);
-        for (let name in times.creeps)
-            times.creeps[name] = times.creeps[name].toFixed(2);
-        console.log(JSON.stringify(times));
-        Memory.debug.logNext = false;
+    if (logNext !== 0) {
+        times.total += Game.cpu.getUsed();
+        logNext--;
+
+        if (logNext === 0) {
+            times.init = (times.init / logTimeTicks).toFixed(2);
+            times.global = (times.global / logTimeTicks).toFixed(2);
+            times.total = (times.total / logTimeTicks).toFixed(2);
+            for (let name in times.bases)
+                times.bases[name] = (times.bases[name] / logTimeTicks).toFixed(2);
+            for (let name in times.creeps)
+                times.creeps[name] = (times.creeps[name] / logTimeTicks).toFixed(2);
+            console.log(JSON.stringify(times));
+        }
     }
 }
 module.exports.logTimes = function() {
-    Memory.debug.logNext = true;
+    logNext = logTimeTicks;
+    times = { init: 0, global: 0, total: 0, bases: {}, creeps: {} };
     return "Calculating CPU usage...";
 }
 
