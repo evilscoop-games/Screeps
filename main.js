@@ -264,38 +264,41 @@ function destroyBase(base) {
     console.log(base.name + ': Destroyed');
 }
 
-var skipLoops = 0;
+var skippedTicks = 0;
 function checkBucket() {    
     var bucket = Game.cpu.bucket;
 
     //Skip partial/full frames if we're having troubles
     if (bucket < 6000) {
         console.log("CPU Bucket is low (" + bucket + "), skipping all ticks");
-        skipLoops = 0;
+        skippedTicks = 0;
         return 0;                     
     }
-    else if ((bucket < 7000 && skipLoops < 1)) {
+    else if (bucket < 7000 && skippedTicks < 1) {
         console.log("CPU Bucket is low (" + bucket + "), skipping all ticks");
-        skipLoops++;
+        skippedTicks++;
         return 0;
     }
     else if (bucket < 8000) {
         console.log("CPU Bucket is low (" + bucket + "), skipping global/base tick");
-        skipLoops = 0;
+        skippedTicks = 0;
         return 1;
     }
-    else if (bucket < 9000 && skipLoops < 1) {
+    else if (bucket < 9000 && skippedTicks < 1) {
         console.log("CPU Bucket is low (" + bucket + "), skipping global/base tick");
-        skipLoops++;
+        skippedTicks++;
         return 1;
     }
     else {
-        skipLoops = 0;
+        skippedTicks = 0;
         return 2;
     }
 }
 
 var time = 0;
 function hasElapsed(offset, interval) {
-    return interval === 1 || (time + offset) % interval === 0;
+    if (interval === 1)
+        return true;
+    var adjustedTime = (time + 1 + (skippedTicks === 0 ? 0 : skippedTicks - 1));
+    return adjustedTime % interval === 0;
 }
