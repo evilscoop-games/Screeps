@@ -21,31 +21,30 @@ module.exports.onDestroy = function(name, memory) {
 module.exports.update = function(creep, memory, actions) {
     var baseMemory = Memory.bases[memory.base];
     var coreSpawn = Game.spawns[baseMemory.spawns[0]];
-            
-    if (creep.carry.energy > 0) {
-        unclaimTarget(creep.name, memory);
-        var dropoff = mapUtils.findDropoff(creep.pos, Game.bases[memory.base], creep.carry.energy);
-        if (dropoff) {
-            if (actions.deposit(creep, dropoff, true))
+           
+    if (memory.target) {
+        var sourceMemory = Memory.sources[memory.target];
+        var id = sourceMemory.container.id;
+        var container = Game.getObjectById(id);
+        if (!id)
+            unclaimTarget(creep.name, memory);
+        else if (!container) {
+            var pos = mapUtils.deserializePos(sourceMemory.pos);
+            actions.moveTo(creep, pos);
+            return;
+        }
+        else if (_.sum(creep.carry) !== creep.carryCapacity && container.store.energy > 25) {
+            if (actions.withdraw(creep, container, true))
                 return;
         }
+        else
+            unclaimTarget(creep.name, memory);
     }
-    else {
-        if (memory.target) {
-            var sourceMemory = Memory.sources[memory.target];
-            var id = sourceMemory.container.id;
-            var container = Game.getObjectById(id);
-            if (!id)
-                unclaimTarget(creep.name, memory);
-            else if (!container) {
-                var pos = mapUtils.deserializePos(sourceMemory.pos);
-                actions.moveTo(creep, pos);
-                return;
-            }
-            else {
-                if (actions.withdraw(creep, container, true))
-                    return;
-            }
+    else if (creep.carry.energy > 0) {
+        var dropoff = mapUtils.findDropoff(creep.pos, Game.bases[memory.base], creep.carry.energy);
+        if (dropoff) {
+            actions.deposit(creep, dropoff, true);
+            return;
         }
     }
 }
