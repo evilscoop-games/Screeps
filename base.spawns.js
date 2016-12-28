@@ -63,7 +63,7 @@ module.exports.updateBase = function(base, actions, creepRequests, structureRequ
                             manager = Game.unitManagers[memory.role];
                         else
                             manager = Game.creepManagers[memory.role];
-                        var bodyInfo = manager.getBodyInfo(spawn.room.energyAvailable);
+                        var bodyInfo = manager.getBodyInfo(maxEnergy);
 
                         if (bodyInfo.cost > spawn.room.energyCapacityAvailable) {
                             //console.log("Could not afford " + memory.role + ": " + bodyInfo.cost + "/" + spawn.room.energyCapacityAvailable);
@@ -117,7 +117,7 @@ module.exports.updateBase = function(base, actions, creepRequests, structureRequ
                                 listUtils.add(creepNames, name);
                                 manager.onCreate(name, memory);
                             }
-                            console.log(spawn.room.name + ": Spawning " + memory.role + " (" + request.priority + ", " + creepNames.length  + " total)");
+                            console.log(spawn.room.name + ": Spawning " + memory.role + " (" + request.priority + ", " + creepNames.length  + " total) " + JSON.stringify(parts));
                         }
                         else {
                             if (request.priority > baseMemory.construction.requestedCreepPriority) 
