@@ -285,7 +285,7 @@ function checkBucket() {
     //Skip partial/full frames if we're having troubles
     if (bucket < 4000) {
         if (bucketTier !== 6 || (Game.time - lastAnnounce) > 25) {
-            console.log("CPU Bucket is critical (" + bucket + "), skipping all ticks.");
+            console.log("[!!!] CPU Bucket is critical (" + bucket + "), skipping all ticks.");
             lastAnnounce = Game.time;
         }
         bucketTier = 6;
@@ -294,7 +294,7 @@ function checkBucket() {
     }
     else if (bucket < 5000 && skippedTicks < 3) {
         if (bucketTier !== 5 || (Game.time - lastAnnounce) > 25) {
-            console.log("CPU Bucket is critical (" + bucket + "), skipping all global/base ticks, 75% of creep ticks.");
+            console.log("[!!!] CPU Bucket is critical (" + bucket + "), skipping all global/base ticks, 75% of creep ticks.");
             lastAnnounce = Game.time;
         }
         bucketTier = 5;
@@ -303,7 +303,7 @@ function checkBucket() {
     }
     else if (bucket < 6000 && skippedTicks < 1) {
         if (bucketTier !== 4 || (Game.time - lastAnnounce) > 25) {
-            console.log("CPU Bucket is critical (" + bucket + "), skipping all global/base ticks, 50% of creep ticks.");
+            console.log("[!!!] CPU Bucket is critical (" + bucket + "), skipping all global/base ticks, 50% of creep ticks.");
             lastAnnounce = Game.time;
         }
         bucketTier = 4;
@@ -312,7 +312,7 @@ function checkBucket() {
     }
     else if (bucket < 7000) {
         if (bucketTier !== 3 || (Game.time - lastAnnounce) > 25) {
-            console.log("CPU Bucket is critical (" + bucket + "), skipping all global/base ticks.");
+            console.log("[!!!] CPU Bucket is critical (" + bucket + "), skipping all global/base ticks.");
             lastAnnounce = Game.time;
         }
         bucketTier = 3;
@@ -321,7 +321,7 @@ function checkBucket() {
     }
     else if (bucket < 8000 && skippedTicks < 3) {
         if (bucketTier !== 2 || (Game.time - lastAnnounce) > 25) {
-            console.log("CPU Bucket is low (" + bucket + "), skipping 75% of global/base ticks.");
+            console.log("[!] CPU Bucket is low (" + bucket + "), skipping 75% of global/base ticks.");
             lastAnnounce = Game.time;
         }
         bucketTier = 2;
@@ -330,7 +330,7 @@ function checkBucket() {
     }
     else if (bucket < 9000 && skippedTicks < 1) {
         if (bucketTier !== 1 || (Game.time - lastAnnounce) > 25) {
-            console.log("CPU Bucket is low (" + bucket + "), skipping 50% of global/base ticks.");
+            console.log("[!] CPU Bucket is low (" + bucket + "), skipping 50% of global/base ticks.");
             lastAnnounce = Game.time;
         }
         bucketTier = 1;
