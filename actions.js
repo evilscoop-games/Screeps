@@ -277,24 +277,24 @@ function doTakeFrom(creep, target, allowMove, type) {
         return true; //Failed
 }
 
-module.exports.deposit = function(creep, target, allowMove, type) {
+module.exports.deposit = function(creep, target, allowMove, resource) {
     Game.debug.sayAction(creep, 'deposit');
-    if (type === undefined)
-        type = RESOURCE_ENERGY;
+    if (resource === undefined)
+        resource = RESOURCE_ENERGY;
 
-    if (doDeposit(creep, target, allowMove, type) || !allowMove)
+    if (doDeposit(creep, target, allowMove, resource) || !allowMove)
         return false;
-    setAction(creep, 'deposit', { target: target.id, type: type });
+    setAction(creep, 'deposit', { target: target.id, resource: resource });
     return true;
 }
 function continueDeposit(creep, action) {
     var target = Game.structures[action.target];
     if (!target)
         target = Game.getObjectById(action.target);
-    return doDeposit(creep, target, true, action.type);
+    return doDeposit(creep, target, true, action.resource);
 }
-function doDeposit(creep, target, allowMove, type) {
-    var result = creep.transfer(target, type);
+function doDeposit(creep, target, allowMove, resource) {
+    var result = creep.transfer(target, resource);
 
     if (result === OK)
         return true; //Success
@@ -306,24 +306,24 @@ function doDeposit(creep, target, allowMove, type) {
         return true; //Failed
 }
 
-module.exports.withdraw = function(creep, target, allowMove, type) {
+module.exports.withdraw = function(creep, target, allowMove, resource) {
     Game.debug.sayAction(creep, 'withdraw');
-    if (type === undefined)
-        type = RESOURCE_ENERGY;
+    if (resource === undefined)
+        resource = RESOURCE_ENERGY;
 
-    if (doWithdraw(creep, target, allowMove, type) || !allowMove)
+    if (doWithdraw(creep, target, allowMove, resource) || !allowMove)
         return false;
-    setAction(creep, 'withdraw', { target: target.id, type: type });
+    setAction(creep, 'withdraw', { target: target.id, resource: resource });
     return true;
 }
 function continueWithdraw(creep, action) {
     var target = Game.structures[action.target];
     if (!target)
         target = Game.getObjectById(action.target);
-    return doWithdraw(creep, target, true, action.type);
+    return doWithdraw(creep, target, true, action.resource);
 }
-function doWithdraw(creep, target, allowMove, type) {
-    var result = creep.withdraw(target, type);
+function doWithdraw(creep, target, allowMove, resource) {
+    var result = creep.withdraw(target, resource);
 
     if (result === OK)
         return true; //Success
