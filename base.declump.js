@@ -6,7 +6,7 @@ module.exports.updateGlobal = function(actions) {
 module.exports.updateBase = function(base, actions, creepRequests, structureRequests, defenseRequests) {
     var baseMemory = base.memory;
 
-    //Declump around spawns    
+    //Declump around spawns
     var spawns = baseMemory.spawns;    
     for (let i = 0; i < spawns.length; i++) {
         var spawn = Game.spawns[spawns[i]];

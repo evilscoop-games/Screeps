@@ -20,9 +20,10 @@ module.exports.updateBase = function(base, actions, creepRequests, structureRequ
     var scavengerCount = roles['scavenger'].creeps.length;
     var towerCount = baseMemory.structures[STRUCTURE_TOWER].length;
     var storageCount = baseMemory.structures[STRUCTURE_STORAGE].length;
-    var containers = [];
+    var sources = [];
     
     var maxCollectorPartCount = 0;
+    var maxCollectorCount = 0;
     var criticalCollectors = 0;
     for (let i = 0; i < baseMemory.sources.length; i++) {
         var sourceMemory = Memory.sources[baseMemory.sources[i]];
@@ -38,50 +39,75 @@ module.exports.updateBase = function(base, actions, creepRequests, structureRequ
                 }
                 carry += creepMemory.parts.carry;
             }
-            var maxCarry = Math.ceil(distance / 5);
+
+            var isCritical = sourceCollectors.length === 0 && sourceMemory.container.amount >= 1950;
+            if (isCritical)
+                criticalCollectors++;
+            var maxCarry = Math.ceil(distance / 3);
+            var maxCount = Math.ceil(distance / 65);
             maxCollectorPartCount += maxCarry;
-            if (sourceMemory.container.amount > 50 * carry && carry < maxCarry) {
-                if (sourceCollectors.length === 0 && sourceMemory.container.amount >= 1500)
-                    criticalCollectors++;
-                listUtils.add(containers, baseMemory.sources[i]);
+            maxCollectorCount += maxCount;
+
+            var remainingCarry
+            if ((sourceMemory.harvesters.length > 0 && sourceMemory.container.amount > 50 * carry && carry < maxCarry) || isCritical) {
+                var entry = { id: baseMemory.sources[i], remaining: sourceMemory.container.amount - 50 * carry };
+                /*if (base.name === 'W8N2')
+                    console.log(baseMemory.sources[i] + ' needs pickup (' + entry.remaining + ')');*/
+                listUtils.add(sources, entry);
             }
         }
     }
 
+    //console.log(base.name + " wants " + maxCollectorPartCount + " parts, up to " + maxCollectorCount + " creeps.");
 
-    maxCollectorPartCount = Math.min(100, maxCollectorPartCount);
+    //maxCollectorPartCount = Math.min(100, maxCollectorPartCount);
     if (base.dropoffs.length === 0)
         maxCollectorPartCount /= 2; //If we have nowhere to put energy, dont spawn as many collectors
+    if (criticalCollectors > 3)
+        criticalCollectors = 3; //Cap critical collectors
 
-    if (containers.length !== 0 && collectorCarryParts < maxCollectorPartCount) {
+    if (sources.length !== 0 && collectorCarryParts < maxCollectorPartCount && 
+            collectors.creeps.length < maxCollectorCount) {
         var priority;
         var memory = { role: 'collector' };
-        if (criticalCollectors !== 0)
+        if (criticalCollectors > collectors.creeps.length)
             priority = 0.98;
         else
             priority = 0.78;
         requestUtils.add(creepRequests, priority, memory);
     }
 
-    for (let i = 0; i < collectors.creeps.length && containers.length !== 0; i++) {
+    for (let i = 0; i < collectors.creeps.length && sources.length !== 0; i++) {
         var name = collectors.creeps[i];
-        var creepMemory = Memory.creeps[name];
-        if (!creepMemory.target) {
-            if (Game.creeps[name].carry.energy !== 0)
-                continue;
+        var creep = Game.creeps[name];
+        if (creep.carry.energy !== 0)
+            continue;
 
-            var bestSource = Memory.sources[containers[0]];
-            var bestIndex = 0;
-            for (let j = 1; j < containers.length; j++) {
-                var sourceMemory = Memory.sources[containers[j]];
-                if (sourceMemory.container.amount > bestSource.container.amount) {
-                    bestSource = sourceMemory;
-                    bestIndex = j;
+        var creepMemory = Memory.creeps[name];
+        var capacity = creep.carryCapacity - _.sum(creep.carry);
+        if (!creepMemory.target) {
+            var bestIndex = -1;
+            for (let j = 0; j < sources.length; j++) {
+                //Select the closest container if it has more energy than we can hold
+                if (sources[j].remaining >= capacity) {
+                    bestIndex = j; 
+                    break;
                 }
+
+                //Otherwise choose the one with the most energy
+                var sourceMemory = sources[j];
+                if (bestIndex === -1 || sources[j].remaining > sources[bestIndex].remaining)
+                    bestIndex = j;
             }
-            var sourceId = containers[bestIndex];
+
+            var sourceId = sources[bestIndex].id;
+            sources[bestIndex].remaining -= capacity;
+            if (sources[bestIndex].remaining <= 0)
+                listUtils.removeAt(sources, bestIndex);
+
             creepMemory.target = sourceId;
-            listUtils.removeAt(containers, bestIndex);
+            /*if (base.name === 'W8N2')
+                console.log('Sending ' + name + ' to ' + sourceId);*/
             listUtils.add(Memory.sources[sourceId].collectors, name);    
         }
     }
