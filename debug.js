@@ -63,6 +63,9 @@ module.exports.logTimes = function() {
     times = { init: 0, global: 0, total: 0, bases: {}, creeps: {} };
     return "Calculating CPU usage...";
 }
+module.exports.isLoggingTimes = function() {
+    return logNext !== 0;
+}
 
 // Actions
 module.exports.showActions = function() {

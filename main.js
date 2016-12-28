@@ -79,14 +79,15 @@ module.exports.loop = function () {
         init(); //Init Memory
 
     Game.debug = debug;
-    time = Game.time;
-    if (Memory.debug.run === true) {
-            
+    if (Memory.debug.run === true) {            
         Game.bases = {};
+        var lostTicks = skippedTicks
         var bucketLevel = checkBucket(); //0 = Skip, 1 = Creeps only, 2 = Creeps+Managers
 
         if (bucketLevel !== 0) {
             var runManagers = bucketLevel >= 2;
+            if (runManagers)
+                time++;
 
             debug.beginLoop();
             updateGlobal(runManagers);            
@@ -205,10 +206,18 @@ function updateCreep(creep) {
         }*/
 
         if (!actions.hasAnyAction(creep)) {
-            if (creep.pos.x === 0 || creep.pos.y === 0 || creep.pos.x === 49 || creep.pos.y === 49)
+            /*if (creep.pos.x === 0)
+                creep.move(RIGHT);
+            else if (creep.pos.y === 0)
+                creep.move(BOTTOM);
+            else if (creep.pos.x === 49)
+                creep.move(LEFT);
+            else if (creep.pos.y === 49)
+                creep.move(TOP);*/
+            if (creep.pos.x === 0 || creep.pos.y === 0 || 
+                creep.pos.x === 49 || creep.pos.y === 49)
                 actions.flee(creep, creep, 1);
         }
-
         if (actions.continueAction(creep) !== true) {
             var memory = creep.memory;
             if (memory.military)
@@ -265,31 +274,77 @@ function destroyBase(base) {
 }
 
 var skippedTicks = 0;
-function checkBucket() {    
-    var bucket = Game.cpu.bucket;
+var lastBucketTier = 0;
+var bucketTier = 0;
+var lastAnnounce = 0;
+function checkBucket() {
+    if (debug.isLoggingTimes() ===  true)
+        return 2;
 
+    var bucket = Game.cpu.bucket;
     //Skip partial/full frames if we're having troubles
-    if (bucket < 6000) {
-        console.log("CPU Bucket is low (" + bucket + "), skipping all ticks");
+    if (bucket < 4000) {
+        if (bucketTier !== 6 || (Game.time - lastAnnounce) > 25) {
+            console.log("CPU Bucket is critical (" + bucket + "), skipping all ticks.");
+            lastAnnounce = Game.time;
+        }
+        bucketTier = 6;
         skippedTicks = 0;
         return 0;                     
     }
-    else if (bucket < 7000 && skippedTicks < 1) {
-        console.log("CPU Bucket is low (" + bucket + "), skipping all ticks");
+    else if (bucket < 5000 && skippedTicks < 3) {
+        if (bucketTier !== 5 || (Game.time - lastAnnounce) > 25) {
+            console.log("CPU Bucket is critical (" + bucket + "), skipping all global/base ticks, 75% of creep ticks.");
+            lastAnnounce = Game.time;
+        }
+        bucketTier = 5;
         skippedTicks++;
         return 0;
     }
-    else if (bucket < 8000) {
-        console.log("CPU Bucket is low (" + bucket + "), skipping global/base tick");
+    else if (bucket < 6000 && skippedTicks < 1) {
+        if (bucketTier !== 4 || (Game.time - lastAnnounce) > 25) {
+            console.log("CPU Bucket is critical (" + bucket + "), skipping all global/base ticks, 50% of creep ticks.");
+            lastAnnounce = Game.time;
+        }
+        bucketTier = 4;
+        skippedTicks++;
+        return 0;
+    }
+    else if (bucket < 7000) {
+        if (bucketTier !== 3 || (Game.time - lastAnnounce) > 25) {
+            console.log("CPU Bucket is critical (" + bucket + "), skipping all global/base ticks.");
+            lastAnnounce = Game.time;
+        }
+        bucketTier = 3;
         skippedTicks = 0;
         return 1;
     }
+    else if (bucket < 8000 && skippedTicks < 3) {
+        if (bucketTier !== 2 || (Game.time - lastAnnounce) > 25) {
+            console.log("CPU Bucket is low (" + bucket + "), skipping 75% of global/base ticks.");
+            lastAnnounce = Game.time;
+        }
+        bucketTier = 2;
+        skippedTicks++;
+        return 1;
+    }
     else if (bucket < 9000 && skippedTicks < 1) {
-        console.log("CPU Bucket is low (" + bucket + "), skipping global/base tick");
+        if (bucketTier !== 1 || (Game.time - lastAnnounce) > 25) {
+            console.log("CPU Bucket is low (" + bucket + "), skipping 50% of global/base ticks.");
+            lastAnnounce = Game.time;
+        }
+        bucketTier = 1;
         skippedTicks++;
         return 1;
     }
     else {
+        if (bucket >= 9000) {
+            if (bucketTier !== 0) {
+                console.log("CPU Bucket has been restored (" + bucket + ").");
+                lastAnnounce = Game.time;
+            }
+            bucketTier = 0;
+        }
         skippedTicks = 0;
         return 2;
     }
@@ -299,6 +354,6 @@ var time = 0;
 function hasElapsed(offset, interval) {
     if (interval === 1)
         return true;
-    var adjustedTime = (time + 1 + (skippedTicks === 0 ? 0 : skippedTicks - 1));
+    var adjustedTime = (time + offset + (skippedTicks === 0 ? 0 : skippedTicks - 1));
     return adjustedTime % interval === 0;
 }
