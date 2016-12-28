@@ -52,6 +52,7 @@ Blue: Military Idle Rally
 
 #Other
 0.49 - Defenders (safe mode)
+0.40 - Upgraders
 
 --- Structures ---
 
