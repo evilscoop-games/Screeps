@@ -39,6 +39,7 @@ module.exports.getPowerLevel = function(creep) {
     var body = creep.body;
     var power = 0;
     var boostMul = 1.0;
+    var isMilitary = false;
     for (let i = 0; i < body.length; i++) {
         var part = body[i];
         var boosts = {};
@@ -46,12 +47,15 @@ module.exports.getPowerLevel = function(creep) {
             switch (part.type) {
                 case ATTACK:
                     power += 70; //80-10
+                    isMilitary = true;
                     break;
                 case RANGED_ATTACK:
                     power += 140; //150-10
+                    isMilitary = true;
                     break;
                 case HEAL:
                     power += 240; //250-10
+                    isMilitary = true;
                     break;
             }
             power += part.hits * 0.1;
@@ -61,7 +65,10 @@ module.exports.getPowerLevel = function(creep) {
             }
         }
     }
-    return Math.round(power * boostMul);
+    if (isMilitary === true)
+        return Math.round(power * boostMul);
+    else
+        return 0;
 }
 
 function getCost(body) {
