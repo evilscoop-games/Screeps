@@ -7,7 +7,7 @@ module.exports.updateGlobal = function(actions) {
 
 module.exports.updateBase = function(base, actions, creepRequests, structureRequests, defenseRequests) {
     var baseMemory = base.memory;
-
+    
     var dropoffs = [];
     var hasStorage = false;
     if (baseMemory.roles.recharger_core.creeps.length !== 0) {
@@ -29,7 +29,7 @@ module.exports.updateBase = function(base, actions, creepRequests, structureRequ
         else
             return (structure.energyCapacity - structure.energy) > 0;
     });
-
+    
     var pickups = baseMemory.structures[STRUCTURE_STORAGE];
     var corePickups = baseMemory.structures[STRUCTURE_SPAWN]
         .concat(baseMemory.structures[STRUCTURE_EXTENSION]);

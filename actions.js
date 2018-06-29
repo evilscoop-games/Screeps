@@ -95,6 +95,7 @@ function moveTo(creep, pos) {
     }
     pathMemory.lastPos = mapUtils.serializePos(creep.pos);
     moveStep(creep, pathMemory);
+    creep.saying ;
 }
 function moveByPath(creep, path) {
     if (path.length > 0) {
@@ -118,6 +119,7 @@ function moveStep(creep, pathMemory) {
     //console.log(pathMemory.index + ' / ' + pathMemory.path.length);
     var dir = parseInt(pathMemory.path.substr(pathMemory.index, 1));
     creep.move(dir);
+    creep.saying ;
 }
 
 function flee(creep, target, distance) {
